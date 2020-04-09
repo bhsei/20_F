@@ -1,6 +1,6 @@
-package weixin
+package wechat
 
-// weixin 包提供了对微信服务号可进行的操作
+// wechat 包提供了对微信服务号可进行的操作
 
 var appID string
 var appSecret string
@@ -11,8 +11,8 @@ func Init(appid string, appsecret string) {
 	appSecret = appsecret
 }
 
-// SendWeixinMsg 函数向openid的微信用户发送内容为message的消息，并且可选提供消息点击后跳转的url
-func SendWeixinMsg(message string, openid string, url string) bool {
+// SendWechatMsg 函数向openid的微信用户发送内容为message的消息，并且可选提供消息点击后跳转的url
+func SendWechatMsg(message string, openid string, url string) bool {
 	return true
 }
 
