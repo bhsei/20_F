@@ -1093,6 +1093,7 @@ func NewServices() {
 	newSessionService()
 	newCORSService()
 	newMailService()
+	newWechatService()
 	newRegisterMailService()
 	newNotifyMailService()
 	newWebhookService()

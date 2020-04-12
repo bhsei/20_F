@@ -96,6 +96,9 @@ func Install(ctx *context.Context) {
 	form.RegisterConfirm = setting.Service.RegisterEmailConfirm
 	form.MailNotify = setting.Service.EnableNotifyMail
 
+	form.WechatAppId = setting.Wechat.AppId
+	form.WechatAppSecret = setting.Wechat.AppSecret
+
 	// Server and other services settings
 	form.OfflineMode = setting.OfflineMode
 	form.DisableGravatar = setting.DisableGravatar
@@ -308,6 +311,15 @@ func InstallPost(ctx *context.Context, form auth.InstallForm) {
 	} else {
 		cfg.Section("mailer").Key("ENABLED").SetValue("false")
 	}
+
+	if len(strings.TrimSpace(form.WechatAppId)) > 0 {
+		cfg.Section("wechat").Key("ENABLED").SetValue("true")
+		cfg.Section("wechat").Key("APP_ID").SetValue(form.WechatAppId)
+		cfg.Section("wechat").Key("APP_SECRET").SetValue(form.WechatAppSecret)
+	} else {
+		cfg.Section("wechat").Key("ENABLED").SetValue("false")
+	}
+
 	cfg.Section("service").Key("REGISTER_EMAIL_CONFIRM").SetValue(com.ToStr(form.RegisterConfirm))
 	cfg.Section("service").Key("ENABLE_NOTIFY_MAIL").SetValue(com.ToStr(form.MailNotify))
 

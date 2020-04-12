@@ -43,6 +43,9 @@ type InstallForm struct {
 	RegisterConfirm bool
 	MailNotify      bool
 
+	WechatAppId     string
+	WechatAppSecret string
+
 	OfflineMode                    bool
 	DisableGravatar                bool
 	EnableFederatedAvatar          bool
