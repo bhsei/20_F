@@ -1098,6 +1098,22 @@ func (err ErrWebhookNotExist) Error() string {
 	return fmt.Sprintf("webhook does not exist [id: %d]", err.ID)
 }
 
+//ErrWeChatOpenidNotExist represents a "Wechat" kind of error
+type ErrWeChatOpenidNotExist struct {
+	ID   int64
+	Name string
+}
+
+//IsErrWeChatOpenidNotExist checks if an error is a ErrWeChatOpenidNotExist
+func IsErrWeChatOpenidNotExist(err error) bool {
+	_, ok := err.(ErrWeChatOpenidNotExist)
+	return ok
+}
+
+func (err ErrWeChatOpenidNotExist) Error() string {
+	return fmt.Sprintf("wechat_openid does not exist [id: %d, name:%s]", err.ID, err.Name)
+}
+
 // .___
 // |   | ______ ________ __   ____
 // |   |/  ___//  ___/  |  \_/ __ \
@@ -1937,3 +1953,4 @@ func IsErrOAuthApplicationNotFound(err error) bool {
 func (err ErrOAuthApplicationNotFound) Error() string {
 	return fmt.Sprintf("OAuth application not found [ID: %d]", err.ID)
 }
+
