@@ -5,6 +5,7 @@
 package routers
 
 import (
+	"code.gitea.io/gitea/services/wechat"
 	"context"
 	"fmt"
 	"strings"
@@ -50,6 +51,7 @@ func checkRunMode() {
 func NewServices() {
 	setting.NewServices()
 	mailer.NewContext()
+	wechat.NewContext()
 	_ = cache.NewContext()
 	notification.NewContext()
 }
