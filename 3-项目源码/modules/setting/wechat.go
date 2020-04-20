@@ -2,8 +2,11 @@ package setting
 
 var (
 	Wechat = struct {
-		AppId     string
-		AppSecret string
+		Enable        bool
+		AppId         string
+		AppSecret     string
+		ExpireSeconds int
+		QrcodeSize    int
 	}{}
 )
 
@@ -13,6 +16,9 @@ func newWechatService() {
 		return
 	}
 
+	Wechat.Enable = sec.Key("ENABLED").MustBool()
 	Wechat.AppId = sec.Key("APP_ID").String()
 	Wechat.AppSecret = sec.Key("APP_SECRET").String()
+	Wechat.ExpireSeconds = sec.Key("EXPIRE_SECONDS").MustInt(120)
+	Wechat.QrcodeSize = sec.Key("QRCODE_SIZE").MustInt(256)
 }

@@ -129,6 +129,42 @@
 			</form>
 		</div>
 
+                {{if .Wechat.Enable}}
+		<h4 class="ui top attached header">
+			{{.i18n.Tr "settings.manage_wechat"}}
+		</h4>
+                {{if eq .WechatOpenId ""}}
+                <div class="ui attached segment">
+                        <div class="ui email list">
+                                <div class="ui card">
+                                        <a id="wechat-qrcode" class="image poping up" href="/user/settings/account/wechat_qrcode">
+                                                <img src="/user/settings/account/wechat_qrcode" title="qrcode">
+                                        </a>
+                                        <div class="content wrap">
+                                                <div class="text center">{{.i18n.Tr "settings.wechat_connect"}}</div>
+                                                <div class="text center">{{.i18n.Tr "settings.wechat_qrcode_expire" .Wechat.ExpireSeconds}}</div>
+                                        </div>
+                                </div>
+                        </div>
+                </div>
+                {{else}}
+                <div class="ui attached segment">
+                        <div class="ui email list">
+                                <div class="item">
+                                        <div class="content">
+                                                <strong>{{.WechatOpenId}}</strong>
+                                        </div>
+                                </div>
+                        </div>
+                </div>
+                <div class="ui attached bottom segment">
+                        <form class="ui form" action="/user/settings/account/wechat" method="post">
+                                <button class="ui red button">{{.i18n.Tr "setting.wechat_disconnect"}}</button>
+                        </form>
+                </div>
+                {{end}}
+                {{end}}
+
 		<h4 class="ui top attached header">
 			{{.i18n.Tr "settings.manage_themes"}}
 		</h4>

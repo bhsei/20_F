@@ -7,6 +7,7 @@ package setting
 
 import (
 	"errors"
+	"strconv"
 
 	"code.gitea.io/gitea/models"
 	"code.gitea.io/gitea/modules/auth"
@@ -17,6 +18,8 @@ import (
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/timeutil"
 	"code.gitea.io/gitea/services/mailer"
+	"code.gitea.io/gitea/services/wechat"
+	qrcode "github.com/skip2/go-qrcode"
 )
 
 const (
@@ -28,6 +31,8 @@ func Account(ctx *context.Context) {
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsSettingsAccount"] = true
 	ctx.Data["Email"] = ctx.User.Email
+	ctx.Data["Wechat"] = setting.Wechat
+	ctx.Data["WechatOpenId"] = ctx.User.WechatOpenId
 
 	loadAccountData(ctx)
 
@@ -200,6 +205,27 @@ func DeleteEmail(ctx *context.Context) {
 	log.Trace("Email address deleted: %s", ctx.User.Name)
 
 	ctx.Flash.Success(ctx.Tr("settings.email_deletion_success"))
+	ctx.JSON(200, map[string]interface{}{
+		"redirect": setting.AppSubURL + "/user/settings/account",
+	})
+}
+
+// GetQRCode create QR code for user's account
+func GetQRCode(ctx *context.Context) {
+	url := wechat.GetQRCode(strconv.FormatInt(ctx.User.ID, 10), setting.Wechat.ExpireSeconds)
+	bytes, err := qrcode.Encode(url, qrcode.Medium, setting.Wechat.QrcodeSize)
+	if err != nil {
+		ctx.ServerError("GetQRCode", err)
+		return
+	}
+	ctx.Resp.Header().Set("Content-Type", "image/png")
+	ctx.Write(bytes)
+}
+
+// DisconnectWechat disconnect wechat from user's account
+func DisconnectWechat(ctx *context.APIContext) {
+	ctx.User.UpdateWechatOpenId("")
+	ctx.Flash.Success(ctx.Tr("settings.wechat_disconnect_success"))
 	ctx.JSON(200, map[string]interface{}{
 		"redirect": setting.AppSubURL + "/user/settings/account",
 	})

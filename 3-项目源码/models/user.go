@@ -107,7 +107,7 @@ type User struct {
 	PasswdHashAlgo               string `xorm:"NOT NULL DEFAULT 'pbkdf2'"`
 
 	//WeChatOpenid 用于微信推送
-	WeChatOpenid string
+	WechatOpenId string
 
 	// MustChangePassword is an attribute that determines if a user
 	// is to change his/her password after registration.
@@ -212,9 +212,9 @@ func (u *User) SetLastLogin() {
 }
 
 //UpdateWeChatOpenid 更新WeChatOpenid的值
-func (u *User) UpdateWeChatOpenid(wcid string) error {
-	u.WeChatOpenid = wcid
-	return UpdateUserCols(u, "we_chat_openid")
+func (u *User) UpdateWechatOpenId(wcid string) error {
+	u.WechatOpenId = wcid
+	return UpdateUserCols(u, "wechat_open_id")
 }
 
 // UpdateDiffViewStyle updates the users diff view style
@@ -1385,32 +1385,6 @@ func GetUserIDsByNames(names []string, ignoreNonExistent bool) ([]int64, error) 
 		ids = append(ids, u.ID)
 	}
 	return ids, nil
-}
-
-//GetWeChatOpenidByName Get WeChatOpenid by name
-func GetWeChatOpenidByName(name string) (string, error) {
-	return getWeChatOpenidByName(x, name)
-}
-
-func getWeChatOpenidByName(e Engine, name string) (string, error) {
-	u, _ := GetUserByName(name)
-	if u.WeChatOpenid == "" {
-		return "", ErrWeChatOpenidNotExist{0, name}
-	}
-	return u.WeChatOpenid, nil
-}
-
-//GetWeChatOpenidByID get by id
-func GetWeChatOpenidByID(id int64) (string, error) {
-	return getWeChatOpenidByID(x, id)
-}
-
-func getWeChatOpenidByID(e Engine, id int64) (string, error) {
-	u, _ := GetUserByID(id)
-	if u.WeChatOpenid == "" {
-		return "", ErrWeChatOpenidNotExist{id, ""}
-	}
-	return u.WeChatOpenid, nil
 }
 
 // UserCommit represents a commit with validation of user.

@@ -345,6 +345,8 @@ func RegisterRoutes(m *macaron.Macaron) {
 			m.Combo("").Get(userSetting.Account).Post(bindIgnErr(auth.ChangePasswordForm{}), userSetting.AccountPost)
 			m.Post("/email", bindIgnErr(auth.AddEmailForm{}), userSetting.EmailPost)
 			m.Post("/email/delete", userSetting.DeleteEmail)
+			m.Get("/wechat_qrcode", userSetting.GetQRCode)
+			m.Post("/wechat", userSetting.DisconnectWechat)
 			m.Post("/delete", userSetting.DeleteAccount)
 			m.Post("/theme", bindIgnErr(auth.UpdateThemeForm{}), userSetting.UpdateUIThemePost)
 		})
