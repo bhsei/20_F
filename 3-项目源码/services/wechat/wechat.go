@@ -41,15 +41,19 @@ func SendWechatMsg(message, openid, url string) bool {
 // GetQRCode 生成扫描后重定向到服务号的二维码, 返回二维码的内容
 // data 为二维码携带的数据，微信用户扫描二维码后微信会将扫描事件和二维码携带的数据发送给Gitea服务器
 // expireSeconds 为二维码有效期
-func GetQRCode(data string, expireSeconds int) string {
-	token := getCachedToken(setting.Wechat.AppId, setting.Wechat.AppSecret)
-	qrLink := getQRCode(token, data, expireSeconds)
-	return qrLink
+func GetQRCode(data string, expireSeconds int) (qrcodeContent string, err error) {
+	token, err := getCachedToken(setting.Wechat.AppId, setting.Wechat.AppSecret)
+	if err == nil {
+		qrcodeContent, err = getQRCode(token, data, expireSeconds)
+	}
+	return qrcodeContent, err
 }
 
 // UserInfo 获取微信用户信息
-func GetUserInfo(openid string) UserInfo {
-	token := getCachedToken(setting.Wechat.AppId, setting.Wechat.AppSecret)
-	info := userInfo(token, openid)
-	return info
+func GetUserInfo(openid string) (info UserInfo, err error) {
+	token, err := getCachedToken(setting.Wechat.AppId, setting.Wechat.AppSecret)
+	if err == nil {
+		info, err = userInfo(token, openid)
+	}
+	return info, err
 }

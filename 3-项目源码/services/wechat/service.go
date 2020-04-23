@@ -24,7 +24,13 @@ func processMessageQueue() {
 	for msg := range messageQueue {
 		log.Trace("New wechat message sending request %s: %20s", msg.openid, msg.content)
 
-		token := getCachedToken(setting.Wechat.AppId, setting.Wechat.AppSecret)
-		sendMessage(token, msg.openid, msg.content, msg.url)
+		token, err := getCachedToken(setting.Wechat.AppId, setting.Wechat.AppSecret)
+		if err == nil {
+			err = sendMessage(token, msg.openid, msg.content, msg.url)
+		}
+
+		if err != nil {
+			log.Error("Failed to send wechat message %s: %.10s... - %v", msg.openid, msg.content, err)
+		}
 	}
 }

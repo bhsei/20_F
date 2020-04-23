@@ -6,6 +6,7 @@ APPID="xxx" APPSECRET="xxx" OPENID="xxx" go test -v
 */
 
 import (
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
@@ -20,40 +21,60 @@ func init() {
 }
 
 func TestGetQRCode(t *testing.T) {
+	assert := assert.New(t)
+
 	t.Logf("Use appID:%s appSecret:%s", appID, appSecret)
-	token, _ := getToken(appID, appSecret)
+	token, _, err := getToken(appID, appSecret)
+	assert.Equal(err, nil, "getToken() error")
 	t.Logf("Use access token:%.10s...", token)
 
-	qrStr := getQRCode(token, "test", 3600)
+	qrStr, err := getQRCode(token, "test", 3600)
+	assert.Equal(err, nil, "getQRCode() error")
+
 	t.Logf("getQRCode -> %s", qrStr)
 }
 
 func TestSendWechatMsg(t *testing.T) {
+	assert := assert.New(t)
+
 	t.Logf("Use appID:%s appSecret:%s", appID, appSecret)
-	token, _ := getToken(appID, appSecret)
+	token, _, err := getToken(appID, appSecret)
+	assert.Equal(err, nil, "getToken() error")
 	t.Logf("Use access token:%.10s...", token)
 
-	sendMessage(token, openID, "Hello", "https://baidu.com")
+	err = sendMessage(token, openID, "Hello", "https://baidu.com")
+	assert.Equal(err, nil, "sendMessage() error")
 	t.Logf("sendMessage to %s", openID)
 }
 
 func TestGetCachedToken(t *testing.T) {
+	assert := assert.New(t)
+
 	t.Logf("Use appID:%s appSecret:%s", appID, appSecret)
-	token := getCachedToken(appID, appSecret)
+	token, err := getCachedToken(appID, appSecret)
+	assert.Equal(err, nil, "getCachedToken() error")
+
 	t.Logf("Sleep some seconds...")
 	time.Sleep(8 * time.Second)
-	if token != getCachedToken(appID, appSecret) {
+	token2, err := getCachedToken(appID, appSecret)
+	assert.Equal(err, nil, "getCachedToken() error")
+	if token != token2 {
 		t.Errorf("两次获取到的缓存不一致")
 	}
 }
 
 func TestUserInfo(t *testing.T) {
-	token, _ := getToken(appID, appSecret)
+	assert := assert.New(t)
+
+	t.Logf("Use appID:%s appSecret:%s", appID, appSecret)
+	token, _, err := getToken(appID, appSecret)
+	assert.Equal(err, nil, "getToken() error")
 	t.Logf("Use access token:%.10s...", token)
 
 	t.Logf("Use openID:%s ", openID)
 
-	info := userInfo(token, openID)
+	info, err := userInfo(token, openID)
+	assert.Equal(err, nil, "userInfo() error")
 
 	t.Logf("User info: %+v", info)
 }
