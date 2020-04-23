@@ -361,3 +361,10 @@ type U2FDeleteForm struct {
 func (f *U2FDeleteForm) Validate(ctx *macaron.Context, errs binding.Errors) binding.Errors {
 	return validate(errs, ctx.Data, f, ctx.Locale)
 }
+
+type ValidateForm struct {
+	Signature string `form:"signature" binding:"Required"`
+	Timestamp string `form:"timestamp" binding:"Required"`
+	Nonce     string `form:"nonce" binding:"Required"`
+	Echostr   string `form:"echostr" binding:"Required"`
+}

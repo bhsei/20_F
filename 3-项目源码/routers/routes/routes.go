@@ -32,6 +32,7 @@ import (
 	"code.gitea.io/gitea/routers/repo"
 	"code.gitea.io/gitea/routers/user"
 	userSetting "code.gitea.io/gitea/routers/user/setting"
+	"code.gitea.io/gitea/routers/user/wechat"
 	"code.gitea.io/gitea/services/mailer"
 
 	// to registers all internal adapters
@@ -402,6 +403,9 @@ func RegisterRoutes(m *macaron.Macaron) {
 		m.Get("/forgot_password", user.ForgotPasswd)
 		m.Post("/forgot_password", user.ForgotPasswdPost)
 		m.Post("/logout", user.SignOut)
+		m.Combo("/wechat/events").
+			Post(wechat.WatchEventPost).
+			Get(bindIgnErr(auth.ValidateForm{}), wechat.UrlValidateGet)
 	})
 	// ***** END: User *****
 
