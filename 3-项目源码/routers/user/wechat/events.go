@@ -4,7 +4,11 @@ import (
 	"code.gitea.io/gitea/models"
 	"code.gitea.io/gitea/modules/auth"
 	"code.gitea.io/gitea/modules/context"
+	"code.gitea.io/gitea/modules/setting"
+	"crypto/sha1"
 	"encoding/xml"
+	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -56,7 +60,15 @@ func WatchEventPost(ctx *context.Context) {
 	ctx.RawData(200, []byte(""))
 }
 
+// validate algorithm: https://developers.weixin.qq.com/doc/offiaccount/Basic_Information/Access_Overview.html
 func UrlValidateGet(ctx *context.Context, form auth.ValidateForm) {
-	//TODO: validate signature
+	data := []string{setting.Wechat.Token, form.Nonce, form.Timestamp}
+	s := sha1.New()
+	sort.Strings(data)
+	s.Write([]byte(strings.Join(data, "")))
+	sha1_res := fmt.Sprintf("%x", s.Sum(nil))
+	if sha1_res != form.Signature {
+		return
+	}
 	ctx.RawData(200, []byte(form.Echostr))
 }
