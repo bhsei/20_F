@@ -1,3 +1,4 @@
+// format specification: https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Receiving_event_pushes.html
 package wechat
 
 import (
@@ -16,9 +17,9 @@ import (
 const (
 	SUBSCRIBE   = "subscribe"
 	UNSUBSCRIBE = "unsubscribe"
+	SCAN        = "SCAN"
 )
 
-// Event: subscribe/unsubscribe
 type WatchEventForm struct {
 	Self       string `xml:"ToUserName"`
 	OpenId     string `xml:"FromUserName"`
@@ -41,7 +42,13 @@ func WatchEventPost(ctx *context.Context) {
 		ctx.ServerError("WatchEventPost", err)
 		return
 	}
-	userid_str := strings.TrimPrefix(form.EventKey, "qrscene_")
+	var userid_str string
+	if form.Event == SUBSCRIBE || form.Event == UNSUBSCRIBE {
+		userid_str = strings.TrimPrefix(form.EventKey, "qrscene_")
+	} else if form.Event == SCAN {
+		userid_str = form.EventKey
+		form.Event = SUBSCRIBE
+	}
 	userid, err := strconv.ParseInt(userid_str, 10, 64)
 	if err != nil {
 		ctx.ServerError("WatchEventPost", err)
