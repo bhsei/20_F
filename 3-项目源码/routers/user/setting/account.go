@@ -223,12 +223,10 @@ func GetQRCode(ctx *context.Context) {
 }
 
 // DisconnectWechat disconnect wechat from user's account
-func DisconnectWechat(ctx *context.APIContext) {
+func DisconnectWechat(ctx *context.Context) {
 	ctx.User.UpdateWechatOpenId("")
 	ctx.Flash.Success(ctx.Tr("settings.wechat_disconnect_success"))
-	ctx.JSON(200, map[string]interface{}{
-		"redirect": setting.AppSubURL + "/user/settings/account",
-	})
+	ctx.Redirect(setting.AppSubURL + "/user/settings/account")
 }
 
 // DeleteAccount render user suicide page and response for delete user himself
