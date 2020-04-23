@@ -24,6 +24,7 @@ var Service struct {
 	ShowMilestonesDashboardPage             bool
 	RequireSignInView                       bool
 	EnableNotifyMail                        bool
+	EnableNotifyWechat                      bool
 	EnableBasicAuth                         bool
 	EnableReverseProxyAuth                  bool
 	EnableReverseProxyAutoRegister          bool

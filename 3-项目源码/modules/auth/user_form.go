@@ -42,6 +42,7 @@ type InstallForm struct {
 	SMTPPasswd      string
 	RegisterConfirm bool
 	MailNotify      bool
+	WechatNotify    bool
 
 	WechatAppId     string
 	WechatAppSecret string

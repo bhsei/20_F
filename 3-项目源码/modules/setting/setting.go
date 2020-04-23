@@ -1096,6 +1096,7 @@ func NewServices() {
 	newWechatService()
 	newRegisterMailService()
 	newNotifyMailService()
+	newNotifyWechatService()
 	newWebhookService()
 	newMigrationsService()
 	newIndexerService()

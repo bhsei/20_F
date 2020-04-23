@@ -1,5 +1,9 @@
 package setting
 
+import (
+	"code.gitea.io/gitea/modules/log"
+)
+
 var (
 	Wechat = struct {
 		Enable        bool
@@ -23,4 +27,12 @@ func newWechatService() {
 	Wechat.ExpireSeconds = sec.Key("EXPIRE_SECONDS").MustInt(120)
 	Wechat.QrcodeSize = sec.Key("QRCODE_SIZE").MustInt(256)
 	Wechat.Token = sec.Key("TOKEN").String()
+}
+
+func newNotifyWechatService() {
+	if !Wechat.Enable || !Cfg.Section("service").Key("ENABLE_NOTIFY_WECHAT").MustBool() {
+		return
+	}
+	Service.EnableNotifyWechat = true
+	log.Info("Notify Wechat Service Enabled")
 }
