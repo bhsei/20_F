@@ -122,3 +122,22 @@ func getQRCode(accessToken, data string, expire int) string {
 
 	return url.(string)
 }
+
+func userInfo(accessToken, openid string) UserInfo {
+	url := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN", accessToken, openid)
+
+	res, err := httpClient.Get(url)
+	if err != nil {
+		panic(err)
+	}
+	defer func() { _ = res.Body.Close() }()
+	body, _ := ioutil.ReadAll(res.Body)
+
+	var user UserInfo
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		panic(err)
+	}
+
+	return user
+}
