@@ -1,5 +1,10 @@
 package wechat
 
+/*
+测试方式:
+APPID="xxx" APPSECRET="xxx" OPENID="xxx" go test -v
+*/
+
 import (
 	"os"
 	"testing"
@@ -40,4 +45,15 @@ func TestGetCachedToken(t *testing.T) {
 	if token != getCachedToken(appID, appSecret) {
 		t.Errorf("两次获取到的缓存不一致")
 	}
+}
+
+func TestUserInfo(t *testing.T) {
+	token, _ := getToken(appID, appSecret)
+	t.Logf("Use access token:%.10s...", token)
+
+	t.Logf("Use openID:%s ", openID)
+
+	info := userInfo(token, openID)
+
+	t.Logf("User info: %+v", info)
 }
