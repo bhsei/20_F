@@ -316,6 +316,7 @@ func InstallPost(ctx *context.Context, form auth.InstallForm) {
 		cfg.Section("wechat").Key("ENABLED").SetValue("true")
 		cfg.Section("wechat").Key("APP_ID").SetValue(form.WechatAppId)
 		cfg.Section("wechat").Key("APP_SECRET").SetValue(form.WechatAppSecret)
+		cfg.Section("wechat").Key("TOKEN").SetValue(form.WechatToken)
 	} else {
 		cfg.Section("wechat").Key("ENABLED").SetValue("false")
 	}

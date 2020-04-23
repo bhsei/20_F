@@ -7,6 +7,7 @@ var (
 		AppSecret     string
 		ExpireSeconds int
 		QrcodeSize    int
+		Token         string
 	}{}
 )
 
@@ -21,4 +22,5 @@ func newWechatService() {
 	Wechat.AppSecret = sec.Key("APP_SECRET").String()
 	Wechat.ExpireSeconds = sec.Key("EXPIRE_SECONDS").MustInt(120)
 	Wechat.QrcodeSize = sec.Key("QRCODE_SIZE").MustInt(256)
+	Wechat.Token = sec.Key("TOKEN").String()
 }

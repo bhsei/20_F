@@ -45,6 +45,7 @@ type InstallForm struct {
 
 	WechatAppId     string
 	WechatAppSecret string
+	WechatToken     string
 
 	OfflineMode                    bool
 	DisableGravatar                bool
