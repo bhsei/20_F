@@ -212,7 +212,11 @@ func DeleteEmail(ctx *context.Context) {
 
 // GetQRCode create QR code for user's account
 func GetQRCode(ctx *context.Context) {
-	url := wechat.GetQRCode(strconv.FormatInt(ctx.User.ID, 10), setting.Wechat.ExpireSeconds)
+	url, err := wechat.GetQRCode(strconv.FormatInt(ctx.User.ID, 10), setting.Wechat.ExpireSeconds)
+	if err != nil {
+		ctx.ServerError("GetQRCode", err)
+		return
+	}
 	bytes, err := qrcode.Encode(url, qrcode.Medium, setting.Wechat.QrcodeSize)
 	if err != nil {
 		ctx.ServerError("GetQRCode", err)
