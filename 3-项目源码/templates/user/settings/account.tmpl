@@ -137,8 +137,8 @@
                 <div class="ui attached segment">
                         <div class="ui email list">
                                 <div class="ui card">
-                                        <a id="wechat-qrcode" class="image poping up" href="/user/settings/account/wechat_qrcode">
-                                                <img src="/user/settings/account/wechat_qrcode" title="qrcode">
+                                        <a id="wechat-qrcode" class="image poping up" href="{{AppSubUrl}}/user/settings/account/wechat_qrcode">
+                                                <img src="{{AppSubUrl}}/user/settings/account/wechat_qrcode" title="qrcode">
                                         </a>
                                         <div class="content wrap">
                                                 <div class="text center">{{.i18n.Tr "settings.wechat_connect"}}</div>
@@ -158,8 +158,9 @@
                         </div>
                 </div>
                 <div class="ui attached bottom segment">
-                        <form class="ui form" action="/user/settings/account/wechat" method="post">
-                                <button class="ui red button">{{.i18n.Tr "setting.wechat_disconnect"}}</button>
+                        <form class="ui form" action="{{AppSubUrl}}/user/settings/account/wechat" method="post">
+				{{.CsrfTokenHtml}}
+                                <button class="ui red button">{{.i18n.Tr "settings.wechat_disconnect"}}</button>
                         </form>
                 </div>
                 {{end}}
