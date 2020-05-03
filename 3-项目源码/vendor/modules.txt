@@ -202,6 +202,8 @@ github.com/gobwas/glob/syntax/ast
 github.com/gobwas/glob/syntax/lexer
 github.com/gobwas/glob/util/runes
 github.com/gobwas/glob/util/strings
+# github.com/gogo/protobuf v1.3.1
+github.com/gogo/protobuf/proto
 # github.com/gogs/chardet v0.0.0-20191104214054-4b6791f73a28
 github.com/gogs/chardet
 # github.com/gogs/cron v0.0.0-20171120032916-9f6c956d3e14
@@ -371,6 +373,10 @@ github.com/shurcooL/httpfs/vfsutil
 github.com/shurcooL/vfsgen
 # github.com/siddontang/go-snappy v0.0.0-20140704025258-d8f7bb82a96d
 github.com/siddontang/go-snappy/snappy
+# github.com/skip2/go-qrcode v0.0.0-20191027152451-9434209cb086
+github.com/skip2/go-qrcode
+github.com/skip2/go-qrcode/bitset
+github.com/skip2/go-qrcode/reedsolomon
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
