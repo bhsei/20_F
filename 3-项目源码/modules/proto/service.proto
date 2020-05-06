@@ -1,0 +1,63 @@
+syntax = "proto3";
+package proto;
+
+message MsgControl {
+    message MsgBody {
+        string title = 1;
+        string content = 2;
+        string url = 3;
+    }
+
+    message MsgTarget {
+        repeated string mod = 1;
+    }
+
+    map<int64, MsgTarget> meta = 1;
+    MsgBody body = 2;
+}
+
+message Resp {
+    enum SendStatus {
+        SUCCESS = 0;
+        ERROR = 1;
+    }
+    SendStatus status = 1;
+    string detail = 2;
+}
+
+message MsgControlResp {
+    map<int64, Resp> resp = 2;
+}
+
+message ModuleImportReq {
+    bytes data = 1;
+    MetaInfo meta = 2;
+
+    message MetaInfo {
+        string name = 1;
+    }
+}
+
+message ModuleInfo {
+    string module = 1;
+}
+
+message SettingResp {
+    Resp resp = 1;
+    string module = 2;
+    bytes data = 3;
+}
+
+message SettingForm {
+    map<string, string> data = 1;
+}
+
+service NotifyService {
+    rpc SendMessage(MsgControl) returns (MsgControlResp) {}
+    rpc ModuleImport(ModuleImportReq) returns (Resp) {}
+    rpc GlobalSettingRequest(ModuleInfo) returns (SettingResp) {}
+    rpc GlobalSettingCommit(SettingForm) returns (Resp) {}
+    rpc UserSettingRequest(ModuleInfo) returns (SettingResp) {}
+    rpc UserSettingCommit(SettingForm) returns (Resp) {}
+    rpc DisableModule(ModuleInfo) returns (Resp) {}
+}
