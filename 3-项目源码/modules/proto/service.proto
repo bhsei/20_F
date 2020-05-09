@@ -16,6 +16,9 @@ message MsgControl {
     MsgBody body = 2;
 }
 
+message InitReq {
+}
+
 message Resp {
     enum SendStatus {
         SUCCESS = 0;
@@ -31,10 +34,19 @@ message MsgControlResp {
 
 message ModuleImportReq {
     bytes data = 1;
-    MetaInfo meta = 2;
+}
 
-    message MetaInfo {
-        string name = 1;
+message ModuleImportResp {
+    Resp resp = 1;
+    repeated UrlRedirect redirect = 2;
+
+    message UrlRedirect {
+        int64 id = 1;
+        string pattern = 2;
+        enum URL_TYPE {
+            GET = 0;
+            POST = 1;
+        }
     }
 }
 
@@ -48,16 +60,24 @@ message SettingResp {
     bytes data = 3;
 }
 
-message SettingForm {
-    map<string, string> data = 1;
+message RedirectData {
+    int64 id = 1;
+    map<string, string> form = 2;
+    bytes data = 3;
+}
+
+message RedirectResp {
+    Resp resp = 1;
+    string content_type = 2;
+    bytes data = 3;
 }
 
 service NotifyService {
     rpc SendMessage(MsgControl) returns (MsgControlResp) {}
-    rpc ModuleImport(ModuleImportReq) returns (Resp) {}
+    rpc Init(InitReq) returns (ModuleImportResp) {}
+    rpc ModuleImport(ModuleImportReq) returns (ModuleImportResp) {}
     rpc GlobalSettingRequest(ModuleInfo) returns (SettingResp) {}
-    rpc GlobalSettingCommit(SettingForm) returns (Resp) {}
     rpc UserSettingRequest(ModuleInfo) returns (SettingResp) {}
-    rpc UserSettingCommit(SettingForm) returns (Resp) {}
     rpc DisableModule(ModuleInfo) returns (Resp) {}
+    rpc Redirect(RedirectData) returns (RedirectResp) {}
 }
