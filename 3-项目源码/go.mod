@@ -103,6 +103,7 @@ require (
 	golang.org/x/sys v0.0.0-20200219091948-cb0a6d8edb6c
 	golang.org/x/text v0.3.2
 	golang.org/x/tools v0.0.0-20191213221258-04c2e8eff935 // indirect
+	google.golang.org/grpc v1.21.1
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20150924051756-4e86f4367175 // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
