@@ -11,6 +11,22 @@
 | SY1906117 | 王伟民 | 
 | SY1906434 | 郑锋   | 
 
+## gRPC生成
+
+以下命令假定工作目录位于`3-项目源码/modules/notification/proto/`。
+
+将协议定义编译至Python代码用如下命令：
+```
+python -m grpc_tools.protoc -I. --python_out=.. --grpc_python_out=.. service.proto
+```
+相关依赖请参考[官方样例](https://grpc.io/docs/quickstart/python/)
+
+编译至Go代码用如下命令：
+```
+protoc --gogofast_out=plugins=grpc:../ service.proto
+```
+相关依赖安装请参考[gogo](https://github.com/gogo/protobuf)
+
 ## 贡献
 
 ### 提交格式描述(Git Commit Message)
