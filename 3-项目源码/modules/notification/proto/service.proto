@@ -43,6 +43,7 @@ message ModuleImportResp {
     message UrlRedirect {
         int64 id = 1;
         string pattern = 2;
+        URL_TYPE url_type = 3;
         enum URL_TYPE {
             GET = 0;
             POST = 1;
