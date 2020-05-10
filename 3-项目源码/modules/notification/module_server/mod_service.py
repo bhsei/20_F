@@ -18,7 +18,14 @@ def redirect_urls_transform(urls):
         return import_resp.UrlRedirect(id = url_id, pattern = pattern, url_type = url_type)
     return list(map(tr, urls))
 
-def get_setting(request, setting):
+def get_setting_tmpls(setting_name):
+    module_list = mod_server.module_list
+    data = map(lambda m: (m, module_list[m][setting_name]), module_list.keys())
+    data = map(lambda m: service_pb2.SettingResp.Setting(module = m[0], data = m[1]), data)
+    resp = service_pb2.Resp(status = service_pb2.Resp.SUCCESS)
+    return service_pb2.SettingResp(resp = resp, settings = list(data))
+
+def get_setting_tmpl(request, setting):
     module = request.module
     if module not in mod_server.module_list:
         resp = service_pb2.Resp(status = service_pb2.Resp.ERROR)
@@ -29,7 +36,26 @@ def get_setting(request, setting):
 def get_user_setting(module_name: str):
     if module_name not in mod_server.module_list:
         return []
-    settings = mod_server.module_list[module_name]["userSetting"]
+    settings = mod_server.module_list[module_name]["user_setting"]
+
+def get_user_module_settings(user_id):
+    module_list = mod_server.module_list
+    settings = mod_server.db.db_query(user_id)
+    def collect(module):
+        targets = module_list[module]["user_setting"]
+        ret = {}
+        for target in targets:
+            ret[target] = setting[target]
+        return module, ret
+
+    def module_set(module, settings):
+        for value in settings.values():
+            if len(value) == 0:
+                return False
+        return True
+    modules = map(collect, module_list.keys())
+    valids = filter(lambda m: module_set(m[0], m[1]), modules)
+    return list(valids)
 
 class NotifyService(service_pb2_grpc.NotifyServiceServicer):
 
@@ -49,10 +75,10 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         return service_pb2.ModuleImportResp(resp = service_pb2.Resp(status = ret))
 
     def GlobalSettingRequest(self, request, context):
-        return get_setting(request, "global_setting")
+        return get_setting_tmpls("global_setting")
 
     def UserSettingRequest(self, request, context):
-        return get_setting(request, "user_setting")
+        return get_setting_tmpls("user_setting")
 
     def Redirect(self, request, context):
         rid = request.id
@@ -68,23 +94,13 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         return service_pb2.RedirectResp(
                 resp = service_pb2.Resp(status = service_pb2.Resp.ERROR))
 
-    def DisableModule(self, request, context):
-        return service_pb2.Resp(status = service_pb2.Resp.SUCCESS)
-
     def SendMessage(self, request, context):
         title = request.body.title
         content = request.body.content
         url = request.body.url
-        users = request.meta
-        module_list = mod_server.module_list
+        users = request.ids
         for user in users:
-            modules = users[user]
-            for module in modules:
-                if module not in module_list:
-                    continue
-                settings = module_list[module]["userSetting"]
-                settings = mod_server.db.db_query(user, settings)
-                if settings is None:
-                    continue
-                module_list[module]["object"].send(title, content, url, settings)
+            modules = get_user_module_settings(user)
+            for module, setting in modules:
+                mod_server.module_list[module]["object"].send(title, content, url, setting)
         return service_pb2.MsgControlResp()

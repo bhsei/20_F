@@ -277,7 +277,7 @@ class DBOperation:
             #     db.rollback()
             #     print("UnSuccessfully added table")
 
-    def db_query(self, id, cols):
+    def db_query(self, id, cols = None):
         """ the Query api
 
         :param id: the given Row to query
@@ -287,9 +287,6 @@ class DBOperation:
             dict the query fieldName-fieldValue as key-value
 
         """
-        if not cols or (True in [len(col) == 0 for col in cols]):
-            return None
-
         if self.db_connection is None:
             raise pymysql.Error
 
@@ -298,24 +295,24 @@ class DBOperation:
 
         exist_fields = []
         res = {}
-        query_all = None
         try:
-            cursor.execute("SELECT * FROM USER WHERE ID ={}".format(id))
+            cursor.execute("SELECT * FROM USER WHERE ID = {}".format(id))
             query_all = cursor.fetchall()
-            # print(query_all)
-            if len(query_all) == 0 :
+            if len(query_all) == 0:
                 return None
             for field in cursor.description:
                 exist_fields.append(field[0])
-            # print(exist_fields)
         except pymysql.Error as e:
             raise e
+
+        if cols is None:
+            cols = exist_fields
 
         for i in range(len(exist_fields)):
             if exist_fields[i] in cols:
                 res[exist_fields[i]] = query_all[0][i]
 
-        return res if res else None
+        return res
 
 if __name__ == "__main__":
     config = {

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package proto;
+package notification;
 
 message MsgControl {
     message MsgBody {
@@ -7,16 +7,11 @@ message MsgControl {
         string content = 2;
         string url = 3;
     }
-
-    message MsgTarget {
-        repeated string mod = 1;
-    }
-
-    map<int64, MsgTarget> meta = 1;
+    repeated int64 ids = 1;
     MsgBody body = 2;
 }
 
-message InitReq {
+message Req {
 }
 
 message Resp {
@@ -29,7 +24,7 @@ message Resp {
 }
 
 message MsgControlResp {
-    map<int64, Resp> resp = 2;
+    map<int64, Resp> resps = 1;
 }
 
 message ModuleImportReq {
@@ -51,14 +46,16 @@ message ModuleImportResp {
     }
 }
 
-message ModuleInfo {
-    string module = 1;
+message SettingReq {
 }
 
 message SettingResp {
     Resp resp = 1;
-    string module = 2;
-    bytes data = 3;
+    repeated Setting settings = 2;
+    message Setting {
+        string module = 1;
+        string data = 2;
+    }
 }
 
 message RedirectData {
@@ -75,10 +72,9 @@ message RedirectResp {
 
 service NotifyService {
     rpc SendMessage(MsgControl) returns (MsgControlResp) {}
-    rpc Init(InitReq) returns (ModuleImportResp) {}
+    rpc Init(Req) returns (ModuleImportResp) {}
     rpc ModuleImport(ModuleImportReq) returns (ModuleImportResp) {}
-    rpc GlobalSettingRequest(ModuleInfo) returns (SettingResp) {}
-    rpc UserSettingRequest(ModuleInfo) returns (SettingResp) {}
-    rpc DisableModule(ModuleInfo) returns (Resp) {}
+    rpc GlobalSettingRequest(Req) returns (SettingResp) {}
+    rpc UserSettingRequest(Req) returns (SettingResp) {}
     rpc Redirect(RedirectData) returns (RedirectResp) {}
 }
