@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Callable, Tuple
 
 SettingType = Dict[str, str]
 
 class RedirectUrl(object):
 
-    def __init__(self, url_pattern: str, url_type: int, handler):
+    URL_GET = 1
+    URL_POST = 2
+
+    def __init__(self, url_pattern: str, url_type: int,
+            handler: Callable[[Dict[str, str], bytes], Tuple[str, bytes]]):
         """initialize RedirectUrl object
         handler: return content_type and data
         """
@@ -24,10 +28,3 @@ class ModuleAbstract(ABC):
 
     def get_redirect_urls(self) -> List['RedirectUrl']:
         return []
-
-    def globalSettingCheck(self, setting: SettingType) -> int:
-        self.globalSetting = setting
-        return 0
-    
-    def userSettingCheck(self, setting: SettingType) -> int:
-        return 0

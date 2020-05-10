@@ -20,7 +20,6 @@ class DBOperation:
         :param database: choose
         :return:
         """
-        print(host, port, user, password, database)
         try:
             self.db_connection = pymysql.connect(
                     host = host,
@@ -278,6 +277,45 @@ class DBOperation:
             #     db.rollback()
             #     print("UnSuccessfully added table")
 
+    def db_query(self, id, cols):
+        """ the Query api
+
+        :param id: the given Row to query
+        :param cols: the given fields to return
+        :return:
+            None empty dict or invalid cols collection
+            dict the query fieldName-fieldValue as key-value
+
+        """
+        if not cols or (True in [len(col) == 0 for col in cols]):
+            return None
+
+        if self.db_connection is None:
+            raise pymysql.Error
+
+        db = self.db_connection
+        cursor = db.cursor()
+
+        exist_fields = []
+        res = {}
+        query_all = None
+        try:
+            cursor.execute("SELECT * FROM USER WHERE ID ={}".format(id))
+            query_all = cursor.fetchall()
+            # print(query_all)
+            if len(query_all) == 0 :
+                return None
+            for field in cursor.description:
+                exist_fields.append(field[0])
+            # print(exist_fields)
+        except pymysql.Error as e:
+            raise e
+
+        for i in range(len(exist_fields)):
+            if exist_fields[i] in cols:
+                res[exist_fields[i]] = query_all[0][i]
+
+        return res if res else None
 
 if __name__ == "__main__":
     config = {

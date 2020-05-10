@@ -9,3 +9,6 @@ def get_urls() -> List[Tuple['RedirectUrl', int]]:
 
 def remove_urls() -> List[int]:
     pass
+
+def get_url_by_id(id: int) -> 'RedirectUrl':
+    pass

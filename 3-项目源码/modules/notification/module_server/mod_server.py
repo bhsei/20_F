@@ -8,6 +8,11 @@ import server_config
 from typing import Dict, List
 from db_operation import DBOperation
 import mod_redirect
+import grpc
+from concurrent import futures
+import service_pb2_grpc
+import mod_service
+import logging
 
 # 配置文件存放在rootPath目录下
 CONFIG_FILE = "config.ini"
@@ -95,6 +100,13 @@ def init_module(config: Dict[str, Dict[str, str]]):
             config[module] = {}
         load_module(module, config[module])
 
+def start_server(port):
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers = 10))
+    service_pb2_grpc.add_NotifyServiceServicer_to_server(mod_service.NotifyService(), server)
+    server.add_insecure_port('[::]:{}'.format(port))
+    server.start()
+    server.wait_for_termination()
+
 def main(rootPath: str, port: int) -> int:
     global ROOT_PATH
     global config
@@ -109,6 +121,8 @@ def main(rootPath: str, port: int) -> int:
         config["gitea"] = {}
     init_database(config)
     init_module(config)
+    logging.basicConfig()
+    start_server(port)
     return 0
 
 if __name__ == "__main__":

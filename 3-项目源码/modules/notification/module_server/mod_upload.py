@@ -1,5 +1,5 @@
 from zipp import zipfile, Path
-from typing import List
+from typing import Tuple
 import io
 import json
 import pathlib
@@ -29,16 +29,17 @@ def check_module(root_path):
 def extract_module_zip(module, target_dir):
     ok, name = check_module(Path(module))
     if not ok:
-        return -1
+        return False, ""
     target = target_dir.joinpath(name)
     try:
         target.mkdir(parents = True, exist_ok = False)
         module.extractall(str(target))
     except Exception:
-        return -1
-    return 0
+        #TODO: remove target directory
+        return False, ""
+    return True, name
 
-def extract_module(module_bytes: bytes, target_dir: 'pathlib.Path') -> int:
+def extract_module(module_bytes: bytes, target_dir: 'pathlib.Path') -> Tuple[bool, str]:
     data = io.BytesIO(module_bytes)
     zip_file = zipfile.ZipFile(data, "r")
     return extract_module_zip(zip_file, target_dir)
