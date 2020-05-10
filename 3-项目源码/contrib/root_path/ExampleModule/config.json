@@ -2,6 +2,6 @@
     "version": "v0.1",
     "name": "ExampleModule",
     "author": "NGitea",
-    "globalSetting": ["ExampleID"],
+    "globalSetting": ["example_id"],
     "userSetting": ["UserID"]
 }
