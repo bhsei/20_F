@@ -1002,6 +1002,8 @@ func RegisterRoutes(m *macaron.Macaron) {
 		m.Get("/metrics", routers.Metrics)
 	}
 
+	m.Any("/module/*", routers.Redirect)
+
 	// Not found handler.
 	m.NotFound(routers.NotFound)
 }

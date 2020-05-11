@@ -103,6 +103,7 @@ func ModuleImport(data []byte) {
 }
 
 func GlobalSettings() (gs map[string]string) {
+	gs = map[string]string{}
 	conn, err := getConnect()
 	if err != nil {
 		return
@@ -128,6 +129,7 @@ func GlobalSettings() (gs map[string]string) {
 }
 
 func UserSettings() (us map[string]string) {
+	us = map[string]string{}
 	conn, err := getConnect()
 	if err != nil {
 		return
@@ -152,8 +154,9 @@ func UserSettings() (us map[string]string) {
 	return
 }
 
-func Redirect(form map[string]string, data []byte, id int64) (content_type string, load []byte) {
+func Redirect(form map[string]string, data []byte, id int64) (content_type string, load []byte, ok bool) {
 	conn, err := getConnect()
+	ok = false
 	if err != nil {
 		return
 	}
@@ -176,5 +179,6 @@ func Redirect(form map[string]string, data []byte, id int64) (content_type strin
 	}
 	content_type = r.GetContentType()
 	load = r.GetData()
+	ok = true
 	return
 }
