@@ -59,7 +59,6 @@ class DBOperation:
         ls = [(k, v) for k, v in dict.items() if v is not None]
         stmt = 'INSERT USER (' + ','.join([i[0] for i in ls]) + ') ' \
                'VALUES (' + ','.join(repr(i[1]) for i in ls) + ');'
-        # print(stmt)
 
         try:
             cursor.execute(stmt)
@@ -183,7 +182,6 @@ class DBOperation:
                 tmp += "ADD "+ k + " " + v + ","
 
         stmt = "ALTER TABLE USER " + tmp[:-1]
-        # print(stmt)
 
         try:
             cursor.execute(stmt)
@@ -193,10 +191,6 @@ class DBOperation:
             return -3
 
         return 1
-        # return {
-        #     "repeat_setting" : repeat_settings,
-        #     "new_setting": new_settings
-        # }
 
     def db_del_setting(self, dict):
         """
@@ -226,17 +220,14 @@ class DBOperation:
                 print(e.args[0], e.args[1])
                 return -2
 
-        # print(exist_settings)
         tmp = ""
         for k, v in dict.items():
-            # print(k, k in exist_settings)
             if k not in exist_settings:
                 non_exist_settings[k] = v
             else:
                 del_settings[k] = v
                 tmp += "DROP " + k + ","
         stmt = "ALTER TABLE USER " + tmp[:-1]
-        # print(stmt)
 
         try:
             cursor.execute(stmt)
@@ -245,14 +236,7 @@ class DBOperation:
             db.rollback()
             return -3
 
-        # cursor.execute("SELECT * FROM USER")
-        # print(cursor.description)
         return 1
-
-        # return {
-        #     "repeat_setting" : repeat_settings,
-        #     "new_setting": new_settings
-        # }
 
     def de_reset(self):
         """ Reset the User Table for Test
@@ -300,23 +284,11 @@ class DBOperation:
         tables = cursor.fetchall()
         tables_list = re.findall('(\'.*?\')', str(tables))
         tables_list = [re.sub("'", '', each) for each in tables_list]
-        # print(tables, tables_list)
 
         if table in tables_list:
-            # print("table exists")
             return True
         else:
-            # print("table not exists")
             return False
-            # try:
-            #     sql = createTable[0]
-            #     # print(sql)
-            #     cursor.execute(sql)
-            #     db.commit()
-            #     print("Successfully added table")
-            # except:
-            #     db.rollback()
-            #     print("UnSuccessfully added table")
 
     def db_query(self, id, cols = None):
         """ the Query api
@@ -352,42 +324,4 @@ class DBOperation:
         for i in range(len(exist_fields)):
             if exist_fields[i] in cols:
                 res[exist_fields[i]] = query_all[0][i]
-
         return res
-
-if __name__ == "__main__":
-    config = {
-        "host": "127.0.0.1",
-        "port": 3306,
-        "user": "root",
-        "password": "123456",
-        "database": "test",
-    }
-
-    demo = DBOperation(config)
-    if demo.db_connection is None:
-        print("No~~~~~~~~~~~~~~~~~~")
-    else:
-        print("Success!!")
-
-    # demo.db_alter_user_setting(1, 1)
-    print("Insert-----", demo.db_insert_user_record({
-        "ID": 2,
-    }))
-
-    print("Update----", demo.db_update_user_record(2, {
-        "new4": "100"
-    }))
-
-    print("Add Settings----", demo.db_add_setting({
-        "new4": "INT",
-        "new5": "CHAR(10)"
-    }))
-
-    print("Del Settings----", demo.db_del_setting({
-        "new5": "INT",
-        "new6": "CHAR(10)"
-    }))
-    demo.db_check()
-    # demo.de_reset()
-    demo.db_connection.close()
