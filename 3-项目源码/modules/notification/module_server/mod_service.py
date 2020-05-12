@@ -62,8 +62,10 @@ def get_setting_tmpl(request, setting):
     module = request.module
     if module not in mod_server.module_list:
         resp = service_pb2.Resp(status=service_pb2.Resp.ERROR)
-    resp = service_pb2.Resp(status=service_pb2.Resp.SUCCESS)
-    data = mod_server.module_list[module][setting]
+        data = ''
+    else:
+        resp = service_pb2.Resp(status=service_pb2.Resp.SUCCESS)
+        data = mod_server.module_list[module][setting]
     return service_pb2.SettingResp(resp=resp, module=module, data=data)
 
 
@@ -81,7 +83,7 @@ def get_user_module_settings(user_id):
         targets = module_list[module]["user_setting"]
         ret = {}
         for target in targets:
-            ret[target] = setting[target]
+            ret[target] = settings[target]
         return module, ret
 
     def module_set(module, settings):
@@ -98,7 +100,7 @@ def get_user_module_settings(user_id):
 class NotifyService(service_pb2_grpc.NotifyServiceServicer):
 
     def Init(self, request, context):
-        urls = redirect_urls_transfor(mod_redirect.get_urls())
+        urls = redirect_urls_transform(mod_redirect.get_urls())
         resp = service_pb2.Resp(status=service_pb2.Resp.SUCCESS)
         return service_pb2.ModuleImportResp(resp=resp, redirect=urls)
 
