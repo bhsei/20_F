@@ -1,0 +1,13 @@
+{{template "base/head" .}}
+<div class="admin dashboard">
+	{{template "user/settings/navbar" .}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+                {{range .Modules}}
+                        {{.}}
+                {{else}}
+                        <p>No Modules</p>
+                {{end}}
+	</div>
+</div>
+{{template "base/footer" .}}

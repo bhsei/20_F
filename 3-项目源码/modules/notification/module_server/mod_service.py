@@ -150,4 +150,27 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         resp = service_pb2.Resp(status = service_pb2.Resp.SUCCESS)
         return resp
 
-    #def UserSettingCommit(self, request, context):
+    def UserSettingCommit(self, request, context):
+        module = request.req.module
+        if module not in mod_server.module_list:
+            resp = service_pb2.Resp(
+                    status = service_pb2.Resp.ERROR,
+                    detail = "module {} not exists".format(module))
+            return resp
+        m = mod_server.module_list[module]
+        encode_form = request.req.encode_form
+        uid = request.user
+        form = urllib.parse.parse_qs(encode_form)
+        if not m["object"].user_setting_check(form):
+            resp = service_pb2.Resp(
+                    status = service_pb2.Resp.ERROR,
+                    detail = "module {} check user setting error".format(module))
+            return resp
+        us = m["module_conf"]["userSetting"]
+        data = {}
+        for u in us:
+            data[u] = form[u]
+        #TODO: insert data to database
+        print(data)
+        resp = service_pb2.Resp(status = service_pb2.Resp.SUCCESS)
+        return resp

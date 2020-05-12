@@ -61,6 +61,43 @@ func SetModules(ctx *context.Context, x csrf.CSRF) {
 	ctx.HTML(200, tplModule)
 }
 
+func UserSetModule(ctx *context.Context, x csrf.CSRF) {
+	settings, ok := notification.UserSettings()
+	ctx.Data["Title"] = ctx.Tr("settings")
+	ctx.Data["PageIsSettingsModules"] = true
+	moduleSubUrl := setting.AppSubURL + "/module"
+	csrfToken := x.GetToken()
+	csrfTokenHtml := template.HTML(`<input type="hidden" name="_csrf" value="` + csrfToken + `">`)
+
+	if !ok {
+		log.Info("UserSetModule", settings)
+		return
+	}
+	modules := make([]template.HTML, 0, 10)
+	for module, setting := range settings {
+		s := ModuleSpec{
+			ModuleName:    module,
+			ModuleSetting: map[string]string{},
+			ModuleSubUrl:  moduleSubUrl,
+			CsrfTokenHtml: csrfTokenHtml,
+		}
+		parser, err := template.New(module).Parse(setting)
+		if err != nil {
+			log.Warn("UserSetModule parse %s error", module, err)
+			continue
+		}
+		buffer := bytes.Buffer{}
+		err = parser.Execute(&buffer, s)
+		if err != nil {
+			log.Warn("UserSetModule execute %s error", module, err)
+			continue
+		}
+		modules = append(modules, template.HTML(buffer.String()))
+	}
+	ctx.Data["Modules"] = modules
+	ctx.HTML(200, tplModule)
+}
+
 func ModuleSettingCommit(ctx *context.Context) {
 	if !ctx.User.IsAdmin {
 		ctx.Flash.Error("Only Admin can set modules")
@@ -73,8 +110,22 @@ func ModuleSettingCommit(ctx *context.Context) {
 	if !ok {
 		ctx.Flash.Error("Setting error")
 	} else {
-		ctx.Flash.Success("Setting suceed")
+		ctx.Flash.Success("Setting succeed")
 	}
 	ctx.Redirect(setting.AppSubURL + "/admin/modules")
+	return
+}
+
+func UserModuleSettingCommit(ctx *context.Context) {
+	form := ctx.Req.Form.Encode()
+	module := ctx.Params(":module")
+	log.Info("UserModuleSettingCommit %d", ctx.User.ID, form)
+	ok := notification.UserSettingCommit(ctx.User.ID, module, form)
+	if !ok {
+		ctx.Flash.Error("User setting error")
+	} else {
+		ctx.Flash.Success("User setting succeed")
+	}
+	ctx.Redirect(setting.AppSubURL + "/user/settings/modules")
 	return
 }

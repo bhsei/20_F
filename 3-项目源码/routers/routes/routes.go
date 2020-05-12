@@ -352,6 +352,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 			m.Post("/delete", userSetting.DeleteAccount)
 			m.Post("/theme", bindIgnErr(auth.UpdateThemeForm{}), userSetting.UpdateUIThemePost)
 		})
+		m.Get("/modules", module.UserSetModule)
 		m.Group("/security", func() {
 			m.Get("", userSetting.Security)
 			m.Group("/two_factor", func() {
@@ -1006,6 +1007,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 
 	m.Group("/module", func() {
 		m.Post("/:module/global_setting", module.ModuleSettingCommit)
+		m.Post("/:module/user_setting", module.UserModuleSettingCommit)
 	})
 
 	// Not found handler.
