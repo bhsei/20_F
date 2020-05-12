@@ -11,6 +11,7 @@ import (
 	"code.gitea.io/gitea/modules/notification/base"
 	"code.gitea.io/gitea/modules/notification/indexer"
 	"code.gitea.io/gitea/modules/notification/mail"
+	"code.gitea.io/gitea/modules/notification/module"
 	"code.gitea.io/gitea/modules/notification/ui"
 	"code.gitea.io/gitea/modules/notification/webhook"
 	"code.gitea.io/gitea/modules/notification/wechat"
@@ -36,6 +37,7 @@ func NewContext() {
 	if setting.Service.EnableNotifyWechat {
 		RegisterNotifier(wechat.NewNotifier())
 	}
+	RegisterNotifier(module.NewNotifier())
 	RegisterNotifier(indexer.NewNotifier())
 	RegisterNotifier(webhook.NewNotifier())
 	RegisterNotifier(action.NewNotifier())
