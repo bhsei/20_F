@@ -1,4 +1,4 @@
-package notification
+package module
 
 import (
 	"code.gitea.io/gitea/modules/log"

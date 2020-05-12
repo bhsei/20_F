@@ -5,9 +5,9 @@ import (
 	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/context"
 	"code.gitea.io/gitea/modules/log"
-	"code.gitea.io/gitea/modules/notification"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/upload"
+	module_service "code.gitea.io/gitea/services/module"
 	"fmt"
 	"gitea.com/macaron/csrf"
 	gouuid "github.com/satori/go.uuid"
@@ -82,7 +82,7 @@ func ModuleImport(ctx *context.Context) {
 	}
 	attachments.Delete(name)
 	data, _ := file.([]byte)
-	ok = notification.ModuleImport(data)
+	ok = module_service.ModuleImport(data)
 	if !ok {
 		ctx.Flash.Error("Import module error")
 		ctx.Redirect(setting.AppSubURL + "/admin/modules")
@@ -95,7 +95,7 @@ func ModuleImport(ctx *context.Context) {
 
 //TODO: add self-defined setting data
 func SetModules(ctx *context.Context, x csrf.CSRF) {
-	settings, ok := notification.GlobalSettings()
+	settings, ok := module_service.GlobalSettings()
 	ctx.Data["Title"] = ctx.Tr("admin.modules")
 	ctx.Data["PageIsAdmin"] = true
 	ctx.Data["PageIsAdminModules"] = true
@@ -134,7 +134,7 @@ func SetModules(ctx *context.Context, x csrf.CSRF) {
 }
 
 func UserSetModule(ctx *context.Context, x csrf.CSRF) {
-	settings, ok := notification.UserSettings()
+	settings, ok := module_service.UserSettings()
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsSettingsModules"] = true
 	moduleSubUrl := setting.AppSubURL + "/module"
@@ -178,7 +178,7 @@ func ModuleSettingCommit(ctx *context.Context) {
 	form := ctx.Req.Form.Encode()
 	module := ctx.Params(":module")
 	log.Info("ModuleSettingCommit", form)
-	ok := notification.GlobalSetingCommit(module, form)
+	ok := module_service.GlobalSetingCommit(module, form)
 	if !ok {
 		ctx.Flash.Error("Setting error")
 	} else {
@@ -192,7 +192,7 @@ func UserModuleSettingCommit(ctx *context.Context) {
 	form := ctx.Req.Form.Encode()
 	module := ctx.Params(":module")
 	log.Info("UserModuleSettingCommit %d", ctx.User.ID, form)
-	ok := notification.UserSettingCommit(ctx.User.ID, module, form)
+	ok := module_service.UserSettingCommit(ctx.User.ID, module, form)
 	if !ok {
 		ctx.Flash.Error("User setting error")
 	} else {
@@ -215,11 +215,11 @@ func ModuleRedirect(ctx *context.Context) {
 		return
 	}
 	m := ctx.Req.Method
-	var method notification.ReqType
+	var method module_service.ReqType
 	if m == "GET" {
-		method = notification.GET
+		method = module_service.GET
 	} else if m == "POST" {
-		method = notification.POST
+		method = module_service.POST
 	} else {
 		ctx.NotFound("", nil)
 		return
@@ -227,7 +227,7 @@ func ModuleRedirect(ctx *context.Context) {
 	url := ctx.Req.URL.Path
 	url = strings.TrimPrefix(url, "/module/redirect")
 	log.Info("Module redirect", url)
-	contentType, payload, ok := notification.UrlRedirectRequest(form, body, url, method)
+	contentType, payload, ok := module_service.UrlRedirectRequest(form, body, url, method)
 	if !ok {
 		log.Info("%s for %s Not Found", url, method)
 		ctx.NotFound("", nil)

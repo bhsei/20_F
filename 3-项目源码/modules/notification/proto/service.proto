@@ -1,5 +1,5 @@
 syntax = "proto3";
-package notification;
+package module;
 
 message MsgControl {
     message MsgBody {

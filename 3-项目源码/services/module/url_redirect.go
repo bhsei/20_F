@@ -1,4 +1,4 @@
-package notification
+package module
 
 import (
 	"fmt"
