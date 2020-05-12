@@ -22,13 +22,13 @@ class DBOperation:
         """
         try:
             self.db_connection = pymysql.connect(
-                    host = host,
-                    port = port,
-                    user = user,
-                    password = password,
-                    database = database,
-                    charset = 'utf8mb4'
-                    )
+                host=host,
+                port=port,
+                user=user,
+                password=password,
+                database=database,
+                charset='utf8mb4'
+            )
         except pymysql.Error as e:
             print(e)
             self.db_connection = None
@@ -38,7 +38,7 @@ class DBOperation:
 
         cursor = db.cursor()
         cursor.execute("CREATE TABLE IF NOT EXISTS USER("
-                       "ID INT," 
+                       "ID INT,"
                        "createTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                        ")")
         cursor.close()
@@ -58,7 +58,7 @@ class DBOperation:
 
         ls = [(k, v) for k, v in dict.items() if v is not None]
         stmt = 'INSERT USER (' + ','.join([i[0] for i in ls]) + ') ' \
-               'VALUES (' + ','.join(repr(i[1]) for i in ls) + ');'
+                                                                'VALUES (' + ','.join(repr(i[1]) for i in ls) + ');'
         # print(stmt)
 
         try:
@@ -139,7 +139,7 @@ class DBOperation:
                 repeat_settings[k] = v
             else:
                 new_settings[k] = v
-                tmp += "ADD "+ k + " " + v + ","
+                tmp += "ADD " + k + " " + v + ","
 
         stmt = "ALTER TABLE USER " + tmp[:-1]
         # print(stmt)
@@ -277,7 +277,7 @@ class DBOperation:
             #     db.rollback()
             #     print("UnSuccessfully added table")
 
-    def db_query(self, id, cols = None):
+    def db_query(self, id, cols=None):
         """ the Query api
 
         :param id: the given Row to query
@@ -313,6 +313,7 @@ class DBOperation:
                 res[exist_fields[i]] = query_all[0][i]
 
         return res
+
 
 if __name__ == "__main__":
     config = {
