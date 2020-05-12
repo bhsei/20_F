@@ -79,10 +79,10 @@ func Init() {
 	registerUrls(r.GetRedirect())
 }
 
-func ModuleImport(data []byte) {
+func ModuleImport(data []byte) bool {
 	conn, err := getConnect()
 	if err != nil {
-		return
+		return false
 	}
 	defer conn.Close()
 	c := NewNotifyServiceClient(conn)
@@ -93,13 +93,14 @@ func ModuleImport(data []byte) {
 	})
 	if err != nil {
 		log.Error("gRPC ModuleImport", err)
-		return
+		return false
 	}
 	if r.GetResp().GetStatus() != Resp_SUCCESS {
 		log.Warn("gRPC ModuleImport", r.GetResp().GetDetail())
-		return
+		return false
 	}
 	registerUrls(r.GetRedirect())
+	return true
 }
 
 func GlobalSettings() (gs map[string]string, ok bool) {

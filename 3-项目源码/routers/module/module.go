@@ -7,12 +7,23 @@ import (
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/notification"
 	"code.gitea.io/gitea/modules/setting"
+	"code.gitea.io/gitea/modules/upload"
+	"fmt"
 	"gitea.com/macaron/csrf"
+	gouuid "github.com/satori/go.uuid"
 	"html/template"
+	"strings"
+	"sync"
 )
 
 const (
-	tplModule base.TplName = "admin/modules"
+	tplModule              base.TplName = "admin/modules"
+	tplUserModule          base.TplName = "user/settings/modules"
+	attachmentAllowedTypes string       = "application/zip"
+)
+
+var (
+	attachments sync.Map = sync.Map{}
 )
 
 type ModuleSpec struct {
@@ -23,11 +34,71 @@ type ModuleSpec struct {
 	CsrfTokenHtml  template.HTML
 }
 
+func renderAttachmentSetting(ctx *context.Context) {
+	ctx.Data["RequireDropzone"] = true
+	ctx.Data["IsAttachmentEnabled"] = setting.AttachmentEnabled
+	ctx.Data["AttachmentAllowedTypes"] = attachmentAllowedTypes
+	ctx.Data["AttachmentMaxSize"] = setting.AttachmentMaxSize
+	ctx.Data["AttachmentMaxFiles"] = setting.AttachmentMaxFiles
+}
+
+func UploadAttachments(ctx *context.Context) {
+	file, _, err := ctx.Req.FormFile("file")
+	if err != nil {
+		ctx.Error(500, fmt.Sprintf("FormFile: %v", err))
+		return
+	}
+	defer file.Close()
+	buf := make([]byte, 0)
+	for {
+		tmp := make([]byte, 1024)
+		n, _ := file.Read(tmp)
+		if n > 0 {
+			buf = append(buf, tmp[:n]...)
+		} else {
+			break
+		}
+	}
+	err = upload.VerifyAllowedContentType(buf, strings.Split(attachmentAllowedTypes, ","))
+	if err != nil {
+		ctx.Error(400, err.Error())
+		return
+	}
+	uuid := gouuid.NewV4().String()
+	attachments.Store(uuid, buf)
+	ctx.JSON(200, map[string]string{
+		"uuid": uuid,
+	})
+}
+
+func ModuleImport(ctx *context.Context) {
+	name := ctx.Req.FormValue("files")
+	file, ok := attachments.Load(name)
+	if !ok {
+		ctx.Flash.Error("No attachment selected")
+		ctx.Redirect(setting.AppSubURL + "/admin/modules")
+		return
+	}
+	attachments.Delete(name)
+	data, _ := file.([]byte)
+	ok = notification.ModuleImport(data)
+	if !ok {
+		ctx.Flash.Error("Import module error")
+		ctx.Redirect(setting.AppSubURL + "/admin/modules")
+		return
+	}
+	ctx.Flash.Success("Import module succeed")
+	ctx.Redirect(setting.AppSubURL + "/admin/modules")
+	return
+}
+
 //TODO: add self-defined setting data
 func SetModules(ctx *context.Context, x csrf.CSRF) {
 	settings, ok := notification.GlobalSettings()
+	ctx.Data["Title"] = ctx.Tr("admin.modules")
 	ctx.Data["PageIsAdmin"] = true
 	ctx.Data["PageIsAdminModules"] = true
+	renderAttachmentSetting(ctx)
 	moduleSubUrl := setting.AppSubURL + "/module"
 	csrfToken := x.GetToken()
 	csrfTokenHtml := template.HTML(`<input type="hidden" name="_csrf" value="` + csrfToken + `">`)
@@ -95,7 +166,7 @@ func UserSetModule(ctx *context.Context, x csrf.CSRF) {
 		modules = append(modules, template.HTML(buffer.String()))
 	}
 	ctx.Data["Modules"] = modules
-	ctx.HTML(200, tplModule)
+	ctx.HTML(200, tplUserModule)
 }
 
 func ModuleSettingCommit(ctx *context.Context) {

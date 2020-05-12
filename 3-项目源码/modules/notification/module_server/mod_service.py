@@ -27,6 +27,11 @@ def mod_service_init(root_path, port):
     mod_server.init_module(config)
     logging.basicConfig()
 
+def save_config():
+    path = mod_server.ROOT_PATH.joinpath(mod_server.CONFIG_FILE)
+    with path.open("w") as f:
+        mod_server.config.write(f)
+
 def redirect_urls_transform(urls):
     import_resp = service_pb2.ModuleImportResp
     def tr(url):
@@ -89,6 +94,11 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         ok, name = mod_upload.extract_module(request.data, mod_server.ROOT_PATH)
         ret = service_pb2.Resp.ERROR
         if ok and mod_server.load_module(name, {}):
+            mod_server.config[name] = {}
+            if "enabled_module" not in mod_server.config["gitea"]:
+                mod_server.config["gitea"]["enabled_module"] = ""
+            else:
+                mod_server.config["gitea"]["enabled_module"] += "," + name
             urls = mod_server.module_list[name]["object"].get_redirect_urls()
             urls = redirect_urls_transform(urls)
             ret = service_pb2.Resp.SUCCESS
@@ -146,7 +156,6 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         for g in gs:
             mod_server.config[module][g] = form[g]
         m["status"] = mod_server.NORMAL
-        print(mod_server.config[module])
         resp = service_pb2.Resp(status = service_pb2.Resp.SUCCESS)
         return resp
 

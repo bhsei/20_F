@@ -3,6 +3,19 @@
 	{{template "admin/navbar" .}}
 	<div class="ui container">
 		{{template "base/alert" .}}
+                <h4 class="ui top attached header">
+                        {{.i18n.Tr "admin.modules.import"}}
+                </h4>
+                <div class="ui attached segment">
+                        <form class="ui form" action="{{AppSubUrl}}/module/import" method="post">
+                                <div class="files"></div>
+                                <div class="ui basic button dropzone" id="dropzone" data-upload-url="{{AppSubUrl}}/module/attachments" data-accepts="{{.AttachmentAllowedTypes}}" data-max-file="{{.AttachmentMaxFiles}}" data-max-size="{{.AttachmentMaxSize}}" data-default-message="{{.i18n.Tr "dropzone.default_message"}}" data-invalid-input-type="{{.i18n.Tr "dropzone.invalid_input_type"}}" data-file-too-big="{{.i18n.Tr "dropzone.file_too_big"}}" data-remove-file="{{.i18n.Tr "dropzone.remove_file"}}"></div>
+                                <div class="field">
+                                        <button class="ui green button">{{.i18n.Tr "admin.modules.upload"}}</button>
+                                </div>
+                        </form>
+
+                </div>
                 {{range .Modules}}
                         {{.}}
                 {{else}}

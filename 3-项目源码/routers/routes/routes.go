@@ -1008,6 +1008,8 @@ func RegisterRoutes(m *macaron.Macaron) {
 	m.Group("/module", func() {
 		m.Post("/:module/global_setting", module.ModuleSettingCommit)
 		m.Post("/:module/user_setting", module.UserModuleSettingCommit)
+		m.Post("/attachments", module.UploadAttachments)
+		m.Post("/import", module.ModuleImport)
 	})
 
 	// Not found handler.

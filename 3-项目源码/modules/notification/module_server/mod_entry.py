@@ -11,7 +11,10 @@ def main(root_path, port):
     service_pb2_grpc.add_NotifyServiceServicer_to_server(mod_service.NotifyService(), server)
     server.add_insecure_port('[::]:{}'.format(port))
     server.start()
-    server.wait_for_termination()
+    try:
+        server.wait_for_termination()
+    finally:
+        mod_service.save_config()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
