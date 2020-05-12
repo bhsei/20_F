@@ -17,9 +17,9 @@
 
 将协议定义编译至Python代码用如下命令：
 ```
-python -m grpc_tools.protoc -I. --python_out=.. --grpc_python_out=.. service.proto
+python -m grpc_tools.protoc -I. --python_out=../module_server --grpc_python_out=../module_server service.proto
 ```
-相关依赖请参考[官方样例](https://grpc.io/docs/quickstart/python/)
+相关依赖请使用 `pip install -r ../module_server/requirements.txt ` 安装
 
 编译至Go代码用如下命令：
 ```
