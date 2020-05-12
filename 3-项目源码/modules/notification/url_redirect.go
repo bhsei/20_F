@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	redirectMap sync.Map //url -> id
+	redirectMap sync.Map = sync.Map{}
 )
 
 func UrlRegister(id int64, url string, request_type ReqType) error {

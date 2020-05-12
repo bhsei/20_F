@@ -47,6 +47,13 @@ message ModuleImportResp {
 }
 
 message SettingReq {
+    string module = 1;
+    string encode_form = 2;
+}
+
+message UserSettingReq {
+    SettingReq req = 1;
+    int64 user = 2;
 }
 
 message SettingResp {
@@ -76,5 +83,7 @@ service NotifyService {
     rpc ModuleImport(ModuleImportReq) returns (ModuleImportResp) {}
     rpc GlobalSettingRequest(Req) returns (SettingResp) {}
     rpc UserSettingRequest(Req) returns (SettingResp) {}
+    rpc GlobalSettingCommit(SettingReq) returns (Resp) {}
+    rpc UserSettingCommit(UserSettingReq) returns (Resp) {}
     rpc Redirect(RedirectData) returns (RedirectResp) {}
 }

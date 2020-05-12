@@ -7,6 +7,7 @@ import mod_upload
 import mod_server
 import mod_config
 import logging
+import urllib.parse
 from pathlib import Path
 from typing import List, Tuple
 from configparser import ConfigParser
@@ -47,14 +48,14 @@ def get_setting_tmpls(setting_name):
 
 def get_setting_tmpl(request, setting):
     module = request.module
-    if module not in mod_server.module_list
+    if module not in mod_server.module_list:
         resp = service_pb2.Resp(status = service_pb2.Resp.ERROR)
     resp = service_pb2.Resp(status = service_pb2.Resp.SUCCESS)
     data = mod_server.module_list[module][setting]
     return service_pb2.SettingResp(resp = resp, module = module, data = data)
 
 def get_user_setting(module_name: str):
-    if module_name not in mod_server.module_list
+    if module_name not in mod_server.module_list:
         return []
     settings = mod_server.module_list[module_name]["user_setting"]
 
@@ -124,3 +125,29 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
             for module, setting in modules:
                 mod_server.module_list[module]["object"].send(title, content, url, setting)
         return service_pb2.MsgControlResp()
+
+    def GlobalSettingCommit(self, request, context):
+        module = request.module
+        if module not in mod_server.module_list:
+            resp = service_pb2.Resp(
+                    status = service_pb2.Resp.ERROR,
+                    detail = "module {} not exists".format(module))
+            return resp
+        m = mod_server.module_list[module]
+        encode_form = request.encode_form
+        form = urllib.parse.parse_qs(encode_form)
+        if not m["object"].global_setting_check(form):
+            resp = service_pb2.Resp(
+                    status = service_pb2.Resp.ERROR,
+                    detail = "module {} check setting error".format(module))
+            return resp
+        gs = m["module_conf"]["globalSetting"]
+        mod_server.config[module] = {}
+        for g in gs:
+            mod_server.config[module][g] = form[g]
+        m["status"] = mod_server.NORMAL
+        print(mod_server.config[module])
+        resp = service_pb2.Resp(status = service_pb2.Resp.SUCCESS)
+        return resp
+
+    #def UserSettingCommit(self, request, context):

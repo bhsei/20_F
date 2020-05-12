@@ -5,6 +5,9 @@
 	<a class="{{if .PageIsAdminUsers}}active{{end}} item" href="{{AppSubUrl}}/admin/users">
 		{{.i18n.Tr "admin.users"}}
 	</a>
+	<a class="{{if .PageIsAdminModules}}active{{end}} item" href="{{AppSubUrl}}/admin/modules">
+		{{.i18n.Tr "admin.modules"}}
+	</a>
 	<a class="{{if .PageIsAdminOrganizations}}active{{end}} item" href="{{AppSubUrl}}/admin/orgs">
 		{{.i18n.Tr "admin.organizations"}}
 	</a>

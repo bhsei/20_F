@@ -102,9 +102,10 @@ func ModuleImport(data []byte) {
 	registerUrls(r.GetRedirect())
 }
 
-func GlobalSettings() (gs map[string]string) {
+func GlobalSettings() (gs map[string]string, ok bool) {
 	gs = map[string]string{}
 	conn, err := getConnect()
+	ok = false
 	if err != nil {
 		return
 	}
@@ -125,12 +126,15 @@ func GlobalSettings() (gs map[string]string) {
 	for _, item := range s {
 		gs[item.GetModule()] = item.GetData()
 	}
+	log.Info("gRPC GlobalSettings", gs)
+	ok = true
 	return
 }
 
-func UserSettings() (us map[string]string) {
+func UserSettings() (us map[string]string, ok bool) {
 	us = map[string]string{}
 	conn, err := getConnect()
+	ok = false
 	if err != nil {
 		return
 	}
@@ -151,7 +155,59 @@ func UserSettings() (us map[string]string) {
 	for _, item := range s {
 		us[item.GetModule()] = item.GetData()
 	}
+	ok = true
 	return
+}
+
+func GlobalSetingCommit(module string, form string) bool {
+	conn, err := getConnect()
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+	c := NewNotifyServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeOut)
+	defer cancel()
+	r, err := c.GlobalSettingCommit(ctx, &SettingReq{
+		Module:     module,
+		EncodeForm: form,
+	})
+	if err != nil {
+		log.Error("gRPC GlobalSettingCommit %s", module, err)
+		return false
+	}
+	if r.GetStatus() != Resp_SUCCESS {
+		log.Warn("gRPC GlobalSettingCommit %s", module, r.GetDetail())
+		return false
+	}
+	return true
+}
+
+func UserSettingCommit(uid int64, module string, form string) bool {
+	conn, err := getConnect()
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+	c := NewNotifyServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeOut)
+	defer cancel()
+	r, err := c.UserSettingCommit(ctx, &UserSettingReq{
+		Req: &SettingReq{
+			Module:     module,
+			EncodeForm: form,
+		},
+		User: uid,
+	})
+	if err != nil {
+		log.Error("gRPC UserSettingCommit %s", module, err)
+		return false
+	}
+	if r.GetStatus() != Resp_SUCCESS {
+		log.Warn("gRPC UserSettingCommit %s", module, r.GetDetail())
+		return false
+	}
+	return true
 }
 
 func Redirect(form map[string]string, data []byte, id int64) (content_type string, load []byte, ok bool) {

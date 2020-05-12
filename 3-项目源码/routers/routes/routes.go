@@ -27,6 +27,7 @@ import (
 	"code.gitea.io/gitea/routers/admin"
 	apiv1 "code.gitea.io/gitea/routers/api/v1"
 	"code.gitea.io/gitea/routers/dev"
+	"code.gitea.io/gitea/routers/module"
 	"code.gitea.io/gitea/routers/org"
 	"code.gitea.io/gitea/routers/private"
 	"code.gitea.io/gitea/routers/repo"
@@ -415,6 +416,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 	m.Group("/admin", func() {
 		m.Get("", adminReq, admin.Dashboard)
 		m.Post("", adminReq, bindIgnErr(auth.AdminDashboardForm{}), admin.DashboardPost)
+		m.Get("/modules", module.SetModules)
 		m.Get("/config", admin.Config)
 		m.Post("/config/test_mail", admin.SendTestMail)
 		m.Group("/monitor", func() {
@@ -1002,7 +1004,9 @@ func RegisterRoutes(m *macaron.Macaron) {
 		m.Get("/metrics", routers.Metrics)
 	}
 
-	m.Any("/module/*", routers.Redirect)
+	m.Group("/module", func() {
+		m.Post("/:module/global_setting", module.ModuleSettingCommit)
+	})
 
 	// Not found handler.
 	m.NotFound(routers.NotFound)

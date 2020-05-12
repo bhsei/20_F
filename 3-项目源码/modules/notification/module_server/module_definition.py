@@ -20,7 +20,7 @@ class RedirectUrl(object):
 class ModuleAbstract(ABC):
 
     def __init__(self, setting: SettingType = None):
-        self.globalSetting = setting
+        self.global_setting = setting
 
     @abstractmethod
     def send(self, title: str, content: str, url: str, user_setting: SettingType) -> int:
@@ -28,3 +28,10 @@ class ModuleAbstract(ABC):
 
     def get_redirect_urls(self) -> List['RedirectUrl']:
         return []
+
+    def global_setting_check(self, setting: Dict[str, str]) -> bool:
+        self.global_setting = setting
+        return True
+
+    def user_setting_check(self, setting: Dict[str, str]) -> bool:
+        return True

@@ -66,7 +66,8 @@ def load_module(module: str, config: Dict[str, str]) -> bool:
             "global_setting": global_setting,
             "user_setting": user_setting,
             "config": config,
-            "object": obj
+            "module_conf": conf,
+            "object": obj,
             }
     print("load module:", module_list[module])
     return True
