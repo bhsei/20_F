@@ -23,9 +23,17 @@ python -m grpc_tools.protoc -I. --python_out=.. --grpc_python_out=.. service.pro
 
 编译至Go代码用如下命令：
 ```
-protoc --gogofast_out=plugins=grpc:../ service.proto
+protoc --gogofast_out=plugins=grpc:../../../services/module service.proto
 ```
 相关依赖安装请参考[gogo](https://github.com/gogo/protobuf)
+
+## 通知服务模块
+
+通知服务模块位于`3-项目源码/modules/notification/module_server`，入口文件为`mod_entry.py`，使用下列命令运行：
+```
+python mod_entry.py -r <root_path> -p <port>
+```
+可以使用`python mod_entry.py -h`查看帮助。
 
 ## 贡献
 
