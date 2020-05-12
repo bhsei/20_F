@@ -1,10 +1,30 @@
 import service_pb2_grpc
 import service_pb2
 import grpc
+import sys
 import mod_redirect
 import mod_upload
 import mod_server
+import mod_config
+import logging
+from pathlib import Path
 from typing import List, Tuple
+from configparser import ConfigParser
+
+def mod_service_init(root_path, port):
+    mod_server.ROOT_PATH = root_path = Path(root_path)
+    root_path.mkdir(parents = True, exist_ok = True)
+    current_path = Path(__file__).parent.absolute()
+    sys.path.insert(0, str(current_path))
+    sys.path.insert(0, str(root_path))
+    config_path = Path(root_path).joinpath(mod_server.CONFIG_FILE)
+    config = mod_config.load_config(config_path)
+    mod_server.config = config
+    if "gitea" not in config:
+        config["gitea"] = {}
+    mod_server.init_database(config)
+    mod_server.init_module(config)
+    logging.basicConfig()
 
 def redirect_urls_transform(urls):
     import_resp = service_pb2.ModuleImportResp
@@ -27,14 +47,14 @@ def get_setting_tmpls(setting_name):
 
 def get_setting_tmpl(request, setting):
     module = request.module
-    if module not in mod_server.module_list:
+    if module not in mod_server.module_list
         resp = service_pb2.Resp(status = service_pb2.Resp.ERROR)
     resp = service_pb2.Resp(status = service_pb2.Resp.SUCCESS)
     data = mod_server.module_list[module][setting]
     return service_pb2.SettingResp(resp = resp, module = module, data = data)
 
 def get_user_setting(module_name: str):
-    if module_name not in mod_server.module_list:
+    if module_name not in mod_server.module_list
         return []
     settings = mod_server.module_list[module_name]["user_setting"]
 

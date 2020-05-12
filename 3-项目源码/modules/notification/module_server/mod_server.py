@@ -1,18 +1,9 @@
-import sys
 import json
-import argparse
-from pathlib import Path
-from configparser import ConfigParser
 import importlib
-import server_config
-from typing import Dict, List
+import mod_config
+from typing import Dict
 from db_operation import DBOperation
 import mod_redirect
-import grpc
-from concurrent import futures
-import service_pb2_grpc
-import mod_service
-import logging
 
 # 配置文件存放在rootPath目录下
 CONFIG_FILE = "config.ini"
@@ -77,61 +68,26 @@ def load_module(module: str, config: Dict[str, str]) -> bool:
             "config": config,
             "object": obj
             }
+    print("load module:", module_list[module])
     return True
 
 def init_database(config: Dict[str, Dict[str, str]]):
     global db
     section = config["gitea"]
-    host = server_config.get_option_or_default(section, "host", "localhost")
-    port = server_config.get_option_or_default(section, "port", 3306, int)
-    user = server_config.get_option_or_default(section, "user")
-    password = server_config.get_option_or_default(section, "password")
-    database = server_config.get_option_or_default(section, "database")
+    host = mod_config.get_option_or_default(section, "host", "localhost")
+    port = mod_config.get_option_or_default(section, "port", 3306, int)
+    user = mod_config.get_option_or_default(section, "user")
+    password = mod_config.get_option_or_default(section, "password")
+    database = mod_config.get_option_or_default(section, "database")
     db = DBOperation()
     db.db_init(host, port, user, password, database)
     return db
 
 def init_module(config: Dict[str, Dict[str, str]]):
     section = config["gitea"]
-    modules = server_config.get_option_or_default(section, "enabled_module",
+    modules = mod_config.get_option_or_default(section, "enabled_module",
             [], lambda s: s.split(","))
     for module in modules:
         if module not in config:
             config[module] = {}
         load_module(module, config[module])
-
-def start_server(port):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers = 10))
-    service_pb2_grpc.add_NotifyServiceServicer_to_server(mod_service.NotifyService(), server)
-    server.add_insecure_port('[::]:{}'.format(port))
-    server.start()
-    server.wait_for_termination()
-
-def main(rootPath: str, port: int) -> int:
-    global ROOT_PATH
-    global config
-    ROOT_PATH = Path(rootPath)
-    ROOT_PATH.mkdir(parents = True, exist_ok = True)
-    current_path = Path(__file__).parent.absolute()
-    sys.path.insert(0, str(current_path))
-    sys.path.insert(0, str(ROOT_PATH))
-    config_path = Path(rootPath).joinpath(CONFIG_FILE)
-    config = server_config.load_config(config_path)
-    if "gitea" not in config:
-        config["gitea"] = {}
-    init_database(config)
-    init_module(config)
-    logging.basicConfig()
-    start_server(port)
-    return 0
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-r', '--root_path', action = 'store',
-            required = True, dest = 'root_path',
-            help = 'specify the root path')
-    parser.add_argument('-p', '--port', action = 'store',
-            type = int, required = True, dest = 'port',
-            help = 'specify the port to be used')
-    args = parser.parse_args()
-    sys.exit(main(args.root_path, args.port))
