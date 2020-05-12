@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"gitea.com/macaron/csrf"
 	gouuid "github.com/satori/go.uuid"
+	"github.com/unknwon/com"
 	"html/template"
 	"strings"
 	"sync"
@@ -199,4 +200,39 @@ func UserModuleSettingCommit(ctx *context.Context) {
 	}
 	ctx.Redirect(setting.AppSubURL + "/user/settings/modules")
 	return
+}
+
+func ModuleRedirect(ctx *context.Context) {
+	form := map[string]string{}
+	form["param"] = ctx.Req.Form.Encode()
+	if ctx.User != nil {
+		form["uid"] = com.ToStr(ctx.User.ID)
+		form["admin"] = com.ToStr(ctx.User.IsAdmin)
+	}
+	body, err := ctx.Req.Body().Bytes()
+	if err != nil {
+		ctx.NotFound("", nil)
+		return
+	}
+	m := ctx.Req.Method
+	var method notification.ReqType
+	if m == "GET" {
+		method = notification.GET
+	} else if m == "POST" {
+		method = notification.POST
+	} else {
+		ctx.NotFound("", nil)
+		return
+	}
+	url := ctx.Req.URL.Path
+	url = strings.TrimPrefix(url, "/module/redirect")
+	log.Info("Module redirect", url)
+	contentType, payload, ok := notification.UrlRedirectRequest(form, body, url, method)
+	if !ok {
+		log.Info("%s for %s Not Found", url, method)
+		ctx.NotFound("", nil)
+		return
+	}
+	ctx.Resp.Header().Set("Content-Type", contentType)
+	ctx.Write(payload)
 }

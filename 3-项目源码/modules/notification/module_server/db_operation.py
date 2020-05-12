@@ -104,6 +104,47 @@ class DBOperation:
 
         return 1
 
+    def db_insert_or_update(self, ID, dict):
+        """ Insert Or Update Record
+        :param ID: identifier, Primary Key of Identifier
+        :param dict: The key-value collection intends to insert into USER
+        :return:
+        """
+        if self.db_connection is None:
+            return -1
+
+        db = self.db_connection
+        cursor = db.cursor()
+
+        exist_records = []
+
+        if self.db_table_if_exist(cursor, "USER"):
+            try:
+                cursor.execute("SELECT * FROM USER WHERE id={}".format(ID))
+                exist_records = cursor.fetchone()
+            except pymysql.MySQLError as e:
+                print(e.args[0], e.args[1])
+                return -2
+
+        ls = [(k, v) for k, v in dict.items() if v is not None]
+
+        if exist_records is not None:
+            tmp = ""
+            for i in ls:
+                tmp += str(i[0]) + "=" + str(i[1]) + ","
+            tmp = tmp[:-1]
+            stmt = 'UPDATE USER SET ' + tmp + ' WHERE id={}'.format(ID)
+        else:
+            stmt = 'INSERT USER (ID,' + ','.join([i[0] for i in ls]) + ') ' \
+                   'VALUES ({}'.format(ID) + ',' + ','.join(repr(i[1]) for i in ls) + ');'
+        try:
+            cursor.execute(stmt)
+            db.commit()
+        except pymysql.MySQLError:
+            db.rollback()
+            return -3
+        return 1
+
     def db_add_setting(self, dict):
         """Add Fields For User Table
 

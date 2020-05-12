@@ -14,11 +14,9 @@ import (
 	"code.gitea.io/gitea/modules/context"
 	code_indexer "code.gitea.io/gitea/modules/indexer/code"
 	"code.gitea.io/gitea/modules/log"
-	"code.gitea.io/gitea/modules/notification"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/routers/user"
-	"github.com/unknwon/com"
 )
 
 const (
@@ -383,40 +381,6 @@ func ExploreCode(ctx *context.Context) {
 	ctx.Data["Page"] = pager
 
 	ctx.HTML(200, tplExploreCode)
-}
-
-func Redirect(ctx *context.Context) {
-	form := map[string]string{}
-	form["param"] = ctx.Req.Form.Encode()
-	if ctx.User != nil {
-		form["uid"] = com.ToStr(ctx.User.ID)
-		form["admin"] = com.ToStr(ctx.User.IsAdmin)
-	}
-	body, err := ctx.Req.Body().Bytes()
-	if err != nil {
-		NotFound(ctx)
-		return
-	}
-	m := ctx.Req.Method
-	var method notification.ReqType
-	if m == "GET" {
-		method = notification.GET
-	} else if m == "POST" {
-		method = notification.POST
-	} else {
-		NotFound(ctx)
-		return
-	}
-	url := ctx.Req.URL.Path
-	url = strings.TrimPrefix(url, "/module")
-	contentType, payload, ok := notification.UrlRedirectRequest(form, body, url, method)
-	if !ok {
-		log.Info("%s for %s Not Found", url, method)
-		NotFound(ctx)
-		return
-	}
-	ctx.Resp.Header().Set("Content-Type", contentType)
-	ctx.Write(payload)
 }
 
 // NotFound render 404 page

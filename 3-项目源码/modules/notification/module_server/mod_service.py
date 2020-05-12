@@ -32,6 +32,9 @@ def save_config():
     with path.open("w") as f:
         mod_server.config.write(f)
 
+def get_database():
+    return mod_server.db
+
 def redirect_urls_transform(urls):
     import_resp = service_pb2.ModuleImportResp
     def tr(url):
@@ -179,7 +182,7 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         data = {}
         for u in us:
             data[u] = form[u]
-        #TODO: insert data to database
+        mod_server.db.db_insert_or_update(uid, data)
         print(data)
         resp = service_pb2.Resp(status = service_pb2.Resp.SUCCESS)
         return resp
