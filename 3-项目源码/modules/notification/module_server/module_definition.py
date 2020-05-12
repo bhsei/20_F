@@ -18,9 +18,18 @@ class RedirectUrl(object):
         self.handler = handler
 
 
+"""
+在创建模块时，原则上不允许导入任何其他mod_*模块，若有其他不能实现的需求，再讨论
+"""
 class ModuleAbstract(ABC):
 
-    def __init__(self, setting: SettingType = None):
+    def __init__(self, db_proxy, setting: SettingType = None):
+        """
+        db_proxy: 数据库代理对象，有如下方法:
+            load(user_id: int) -> Dict[str, str] 返回当前模块的个人设置，若没有则为None
+            store(user_id: int, dict: Dict[str, str])->bool 将dict对应设置绑定到user_id对应的用户上，返回操作状态标志
+        """
+        self.db_proxy = db_proxy
         self.global_setting = setting
 
     @abstractmethod
