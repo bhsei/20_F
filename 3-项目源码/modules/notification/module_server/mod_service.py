@@ -57,45 +57,6 @@ def get_setting_tmpls(setting_name):
     return service_pb2.SettingResp(resp=resp, settings=list(data))
 
 
-def get_setting_tmpl(request, setting):
-    module = request.module
-    if module not in mod_server.module_list:
-        resp = service_pb2.Resp(status=service_pb2.Resp.ERROR)
-        data = ''
-    else:
-        resp = service_pb2.Resp(status=service_pb2.Resp.SUCCESS)
-        data = mod_server.module_list[module][setting]
-    return service_pb2.SettingResp(resp=resp, module=module, data=data)
-
-
-def get_user_setting(module_name: str):
-    if module_name not in mod_server.module_list:
-        return []
-    settings = mod_server.module_list[module_name]["user_setting"]
-
-
-def get_user_module_settings(user_id):
-    module_list = mod_server.module_list
-    settings = mod_server.db.db_query(user_id)
-
-    def collect(module):
-        targets = module_list[module]["user_setting"]
-        ret = {}
-        for target in targets:
-            ret[target] = settings[target]
-        return module, ret
-
-    def module_set(module, settings):
-        for value in settings.values():
-            if len(value) == 0:
-                return False
-        return True
-
-    modules = map(collect, module_list.keys())
-    valids = filter(lambda m: module_set(m[0], m[1]), modules)
-    return list(valids)
-
-
 class NotifyService(service_pb2_grpc.NotifyServiceServicer):
 
     def Init(self, request, context):
@@ -144,9 +105,9 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         url = request.body.url
         users = request.ids
         for user in users:
-            modules = get_user_module_settings(user)
-            for module, setting in modules:
-                mod_server.module_list[module]["object"].send(title, content, url, setting)
+            for val in mod_server.values():
+                if val["status"] == mod_server.NORMAL:
+                    val["object"].send(title, content, url, user)
         return service_pb2.MsgControlResp()
 
     def GlobalSettingCommit(self, request, context):
@@ -183,16 +144,7 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         encode_form = request.req.encode_form
         uid = request.user
         form = urllib.parse.parse_qs(encode_form)
-        if not m["object"].user_setting_check(form):
-            resp = service_pb2.Resp(
-                status=service_pb2.Resp.ERROR,
-                detail="module {} check user setting error".format(module))
-            return resp
-        us = m["module_conf"]["userSetting"]
-        data = {}
-        for u in us:
-            data[u] = form[u]
-        mod_server.db.db_insert_or_update(uid, data)
-        print(data)
-        resp = service_pb2.Resp(status=service_pb2.Resp.SUCCESS)
+        ok = m["object"].user_setting_check(uid, form)
+        status = service_pb2.Resp.SUCCESS if ok else service_pb2.Resp.ERROR
+        resp = service_pb2.Resp(status=status)
         return resp

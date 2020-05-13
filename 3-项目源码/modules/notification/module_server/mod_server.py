@@ -1,6 +1,7 @@
 import json
 import importlib
 import mod_config
+import db_proxy
 from typing import Dict
 from db_operation import DBOperation
 import mod_redirect
@@ -58,7 +59,8 @@ def load_module(module: str, config: Dict[str, str]) -> bool:
             status = GLOBAL_INIT
             break
     try:
-        obj = pkg.load_module(config)
+        proxy = db_proxy.DBProxy(module, conf["userSetting"], db)
+        obj = pkg.load_module(proxy, conf, config)
         urls = obj.get_redirect_urls()
         mod_redirect.register_urls(urls)
     except Exception:

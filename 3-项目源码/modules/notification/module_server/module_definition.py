@@ -23,17 +23,19 @@ class RedirectUrl(object):
 """
 class ModuleAbstract(ABC):
 
-    def __init__(self, db_proxy, setting: SettingType = None):
+    def __init__(self, db_proxy, config, setting: SettingType = None):
         """
         db_proxy: 数据库代理对象，有如下方法:
             load(user_id: int) -> Dict[str, str] 返回当前模块的个人设置，若没有则为None
             store(user_id: int, dict: Dict[str, str])->bool 将dict对应设置绑定到user_id对应的用户上，返回操作状态标志
+        config: 模块config.json文件内容解析成的dict
         """
         self.db_proxy = db_proxy
+        self.config = config
         self.global_setting = setting
 
     @abstractmethod
-    def send(self, title: str, content: str, url: str, user_setting: SettingType) -> int:
+    def send(self, title: str, content: str, url: str, uer_id: int) -> int:
         return 0
 
     def get_redirect_urls(self) -> List['RedirectUrl']:
@@ -43,5 +45,5 @@ class ModuleAbstract(ABC):
         self.global_setting = setting
         return True
 
-    def user_setting_check(self, setting: Dict[str, str]) -> bool:
-        return True
+    def user_setting_check(self, user_id: int, setting: Dict[str, str]) -> bool:
+        return self.db_proxy.store(user_id, setting)
