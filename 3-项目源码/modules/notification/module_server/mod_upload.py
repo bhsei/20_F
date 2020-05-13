@@ -4,6 +4,7 @@ import io
 import json
 import pathlib
 
+
 def check_module(root_path):
     conf_path = root_path / "config.json"
     assets_path = root_path / "assets"
@@ -26,18 +27,20 @@ def check_module(root_path):
         return False, ""
     return True, conf["name"]
 
+
 def extract_module_zip(module, target_dir):
     ok, name = check_module(Path(module))
     if not ok:
         return False, ""
     target = target_dir.joinpath(name)
     try:
-        target.mkdir(parents = True, exist_ok = False)
+        target.mkdir(parents=True, exist_ok=False)
         module.extractall(str(target))
     except Exception:
-        #TODO: remove target directory
+        # TODO: remove target directory
         return False, ""
     return True, name
+
 
 def extract_module(module_bytes: bytes, target_dir: 'pathlib.Path') -> Tuple[bool, str]:
     data = io.BytesIO(module_bytes)

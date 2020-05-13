@@ -1,0 +1,16 @@
+<h4 class="ui top attached header">
+        {{.ModuleName}}
+</h4>
+<div class="ui attached segment">
+        <form class="ui form" action="{{.ModuleSubUrl}}/{{.ModuleName}}/user_setting" method="post">
+                {{.CsrfTokenHtml}}
+                <div class="required field">
+                        <label for="open_id">OpenId</label>
+                        <input id="open_id" name="open_id" value='{{index .ModuleSetting "OpenId"}}' data-name='{{index .ModuleSetting "OpenId"}}' autofocus required>
+                </div>
+                <div class="field">
+                        <button class="ui green button">Update Setting</button>
+                </div>
+        </form>
+</div>
+

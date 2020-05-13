@@ -18,8 +18,10 @@ module_list = {}
 config = {}
 db = None
 
+
 def is_str_list(data):
     return bool(data) and all(isinstance(item, str) for item in data)
+
 
 def load_module(module: str, config: Dict[str, str]) -> bool:
     global module_list
@@ -62,15 +64,16 @@ def load_module(module: str, config: Dict[str, str]) -> bool:
     except Exception:
         return False
     module_list[module] = {
-            "status": status,
-            "global_setting": global_setting,
-            "user_setting": user_setting,
-            "config": config,
-            "module_conf": conf,
-            "object": obj,
-            }
+        "status": status,
+        "global_setting": global_setting,
+        "user_setting": user_setting,
+        "config": config,
+        "module_conf": conf,
+        "object": obj,
+    }
     print("load module:", module_list[module])
     return True
+
 
 def init_database(config: Dict[str, Dict[str, str]]):
     global db
@@ -84,10 +87,11 @@ def init_database(config: Dict[str, Dict[str, str]]):
     db.db_init(host, port, user, password, database)
     return db
 
+
 def init_module(config: Dict[str, Dict[str, str]]):
     section = config["gitea"]
     modules = mod_config.get_option_or_default(section, "enabled_module",
-            [], lambda s: s.split(","))
+                                               [], lambda s: s.split(","))
     for module in modules:
         if module not in config:
             config[module] = {}

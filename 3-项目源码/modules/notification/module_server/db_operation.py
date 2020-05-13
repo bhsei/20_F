@@ -22,13 +22,13 @@ class DBOperation:
         """
         try:
             self.db_connection = pymysql.connect(
-                    host = host,
-                    port = port,
-                    user = user,
-                    password = password,
-                    database = database,
-                    charset = 'utf8mb4'
-                    )
+                host=host,
+                port=port,
+                user=user,
+                password=password,
+                database=database,
+                charset='utf8mb4'
+            )
         except pymysql.Error as e:
             print(e)
             self.db_connection = None
@@ -38,7 +38,7 @@ class DBOperation:
 
         cursor = db.cursor()
         cursor.execute("CREATE TABLE IF NOT EXISTS USER("
-                       "ID INT," 
+                       "ID INT,"
                        "createTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                        ")")
         cursor.close()
@@ -179,7 +179,7 @@ class DBOperation:
                 repeat_settings[k] = v
             else:
                 new_settings[k] = v
-                tmp += "ADD "+ k + " " + v + ","
+                tmp += "ADD " + k + " " + v + ","
 
         stmt = "ALTER TABLE USER " + tmp[:-1]
 
@@ -290,7 +290,7 @@ class DBOperation:
         else:
             return False
 
-    def db_query(self, id, cols = None):
+    def db_query(self, id, cols=None):
         """ the Query api
 
         :param id: the given Row to query

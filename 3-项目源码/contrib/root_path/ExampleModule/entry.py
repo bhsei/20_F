@@ -5,5 +5,5 @@ class ExampleModule(ModuleAbstract):
     def send(self, title: str, content: str, url: str, user_setting: SettingType) -> int:
         return 0
 
-def load_module(global_setting: SettingType):
-    return ExampleModule(global_setting)
+def load_module(db_proxy, global_setting: SettingType):
+    return ExampleModule(db_proxy, global_setting)
