@@ -144,7 +144,7 @@ class DBOperation:
             return -3
         return 1
 
-    def db_add_setting(self, dict):
+    def db_add_setting(self, settings):
         """Add Fields For User Table
 
         :param dict: The key-value dictionary intends to insert into USER as setting-type pairs
@@ -161,8 +161,6 @@ class DBOperation:
         cursor = db.cursor()
 
         exist_settings = []
-        repeat_settings = {}
-        new_settings = {}
 
         if self.db_table_if_exist(cursor, "USER"):
             try:
@@ -174,12 +172,9 @@ class DBOperation:
                 return -2
 
         tmp = ""
-        for k, v in dict.items():
-            if k in exist_settings:
-                repeat_settings[k] = v
-            else:
-                new_settings[k] = v
-                tmp += "ADD " + k + " " + v + ","
+        for s in settings:
+            if s not in exist_settings:
+                tmp += "ADD " + s + " " + "VARCHAR(256),"
 
         stmt = "ALTER TABLE USER " + tmp[:-1]
 
@@ -192,7 +187,7 @@ class DBOperation:
 
         return 1
 
-    def db_del_setting(self, dict):
+    def db_del_setting(self, settings):
         """
 
         :param dict: the setting, shown as field-type pair, intends to be deleted
@@ -209,8 +204,6 @@ class DBOperation:
         cursor = db.cursor()
 
         exist_settings = []
-        non_exist_settings = {}
-        del_settings = {}
         if self.db_table_if_exist(cursor, "USER"):
             try:
                 cursor.execute("SELECT * FROM USER")
@@ -221,12 +214,9 @@ class DBOperation:
                 return -2
 
         tmp = ""
-        for k, v in dict.items():
-            if k not in exist_settings:
-                non_exist_settings[k] = v
-            else:
-                del_settings[k] = v
-                tmp += "DROP " + k + ","
+        for s in settings:
+            if s in exist_settings:
+                tmp += "DROP " + s + ","
         stmt = "ALTER TABLE USER " + tmp[:-1]
 
         try:

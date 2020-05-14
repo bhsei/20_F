@@ -13,6 +13,7 @@ class DBProxy(object):
         self.setting_list = setting_list
         self.plist = list(map(lambda s: self.prefix + s, setting_list))
         self.db = db
+        self.db.db_add_setting(self.plist)
 
     def load(self, uid: int) -> Dict[str, str]:
         settings = self.db.db_query(uid)
@@ -34,6 +35,7 @@ class DBProxy(object):
             item = self.setting_list[i]
             pitem = self.plist[i]
             if item not in data:
+                print("store not in {} {}".format(item, data))
                 return False
             f[pitem] = data[item]
         if self.db.db_insert_or_update(uid, f) != 1:

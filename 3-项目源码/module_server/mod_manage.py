@@ -83,7 +83,7 @@ class ModuleManage(object):
             gs = conf["globalSetting"]
             us = conf["userSetting"]
 
-            proxy = db_proxy.DBProxy(name, gs, self._db)
+            proxy = db_proxy.DBProxy(name, us, self._db)
             pkg = importlib.import_module(name + ".entry")
             obj = pkg.load_module(proxy, conf)
 
@@ -149,15 +149,18 @@ class ModuleManage(object):
 
     def add_user_setting(self, module: str, user_id: int, settings: Dict[str, str]) -> bool:
         if module not in self._mlist:
+            print("no module")
             return False
         us = self._mlist[module]["config"]["userSetting"]
         obj = self._mlist[module]["object"]
         f = {}
         for u in us:
             if u not in settings or not settings[u]:
+                print("not in setting")
                 return False
             f[u] = settings[u]
         if not obj.user_setting_check(user_id, f):
+            print("check error")
             return False
         return True
 
