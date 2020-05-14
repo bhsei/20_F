@@ -3,6 +3,19 @@ from typing import Tuple
 import io
 import json
 import pathlib
+import shutil
+
+def is_str_list(data):
+    return bool(data) and all(isinstance(item, str) for item in data)
+
+
+def check_module_config(config):
+    return ("name" in config and
+            config["name"] and
+            "globalSetting" in config and
+            is_str_list(config["globalSetting"]) and
+            "userSetting" in config and
+            is_str_list(config["userSetting"]))
 
 
 def check_module(root_path):
@@ -21,9 +34,7 @@ def check_module(root_path):
         conf = json.loads(conf_path.read_text())
     except json.JSONDecodeError:
         return False, ""
-    if not ("name" in conf and
-            "globalSetting" in conf and
-            "userSetting" in conf):
+    if not check_module_config(conf):
         return False, ""
     return True, conf["name"]
 
@@ -37,7 +48,7 @@ def extract_module_zip(module, target_dir):
         target.mkdir(parents=True, exist_ok=False)
         module.extractall(str(target))
     except Exception:
-        # TODO: remove target directory
+        shutil.rmtree(target)
         return False, ""
     return True, name
 

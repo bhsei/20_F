@@ -1,6 +1,6 @@
 from pathlib import Path
 import mod_config
-import mod_upload
+import mod_util
 from module_definition import RedirectUrl
 import db_operation
 import db_proxy
@@ -33,9 +33,6 @@ class ModuleManage(object):
         modules = self._config.get("gitea", "enabled_module")
         modules = modules.split(",")
         sys.path.append(str(root_path))
-
-        def is_str_list(data):
-            return bool(data) and all(isinstance(item, str) for item in data)
 
         def global_setting_check(name):
             gs = self._mlist[name]["config"]["globalSetting"]
@@ -70,15 +67,9 @@ class ModuleManage(object):
             global_tmpl = global_tmpl.read_text()
             user_tmpl = user_tmpl.read_text()
             conf = json.loads(conf.read_text())
-            
-            if not ("name" in conf and
-                    conf["name"] == name):
-                raise ValueError("{}: name attribute is invalid".format(name))
-            if not ("globalSetting" in conf and
-                    is_str_list(conf["globalSetting"]) and
-                    "userSetting" in conf and
-                    is_str_list(conf["userSetting"])):
-                raise ValueError("{}: globalSetting/userSetting attribute is invalid".format(name))
+
+            if not mod_util.check_module_config(conf):
+                raise ValueError("{}: config.json parse error".format(name))
 
             gs = conf["globalSetting"]
             us = conf["userSetting"]
@@ -118,7 +109,7 @@ class ModuleManage(object):
         return self._mlist[module]["object"].get_redirect_urls()
 
     def load_module(self, data: bytes) -> Union[List['RedirectUrl'], type(None)]:
-        ok, name = mod_upload.extract_module(data, self._root_path)
+        ok, name = mod_util.extract_module(data, self._root_path)
         if not ok:
             return None
         return self._load(name)
