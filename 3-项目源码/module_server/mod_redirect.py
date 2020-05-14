@@ -1,18 +1,19 @@
 from typing import List, Tuple
 from module_definition import RedirectUrl
 
+class ModuleRedirect(object):
 
-def register_urls(urls: List['RedirectUrl']) -> List[int]:
-    pass
+    """manage redirect urls"""
 
+    def __init__(self):
+        pass
 
-def get_urls() -> List[Tuple['RedirectUrl', int]]:
-    return []
+    def register_urls(self, urls: List['RedirectUrl']) -> List[int]:
+        pass
 
+    def get_urls(self) -> List[Tuple['RedirectUrl', int]]:
+        return []
 
-def remove_urls() -> List[int]:
-    return []
+    def get_url_by_id(self, id) -> 'RedirectUrl':
+        return None
 
-
-def get_url_by_id(id: int) -> 'RedirectUrl':
-    return None
