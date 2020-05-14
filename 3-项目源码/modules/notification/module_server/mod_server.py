@@ -73,7 +73,7 @@ def load_module(module: str, config: Dict[str, str]) -> bool:
         "module_conf": conf,
         "object": obj,
     }
-    print("load module:", module_list[module])
+    print("load module:", module)
     return True
 
 

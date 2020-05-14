@@ -30,6 +30,7 @@ import (
 	"code.gitea.io/gitea/modules/webhook"
 	"code.gitea.io/gitea/services/mailer"
 	mirror_service "code.gitea.io/gitea/services/mirror"
+	"code.gitea.io/gitea/services/module"
 	pull_service "code.gitea.io/gitea/services/pull"
 
 	"gitea.com/macaron/macaron"
@@ -119,6 +120,7 @@ func GlobalInit(ctx context.Context) {
 		if err := task.Init(); err != nil {
 			log.Fatal("Failed to initialize task scheduler: %v", err)
 		}
+		module.Init()
 	}
 	if setting.EnableSQLite3 {
 		log.Info("SQLite3 Supported")

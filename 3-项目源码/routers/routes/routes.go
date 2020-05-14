@@ -486,7 +486,9 @@ func RegisterRoutes(m *macaron.Macaron) {
 			m.Post("/delete", admin.DeleteNotices)
 			m.Post("/empty", admin.EmptyNotices)
 		})
-	}, adminReq)
+	}, adminReq, func(ctx *context.Context) {
+		ctx.Data["Module"] = setting.Module
+	})
 	// ***** END: Admin *****
 
 	m.Group("", func() {

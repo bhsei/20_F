@@ -14,10 +14,10 @@ const (
 )
 
 func getConnect() (conn *grpc.ClientConn, err error) {
-	addr := fmt.Sprintf("%s:%d", setting.Mod.Host, setting.Mod.Port)
+	addr := fmt.Sprintf("%s:%d", setting.Module.Host, setting.Module.Port)
 	conn, err = grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
-		log.Error("gRPC getConnect", err)
+		log.Error("gRPC getConnect: %v", err)
 	}
 	return
 }
@@ -40,12 +40,13 @@ func SendMessage(title, content, url string, users []int64) {
 		},
 	})
 	if err != nil {
-		log.Error("gRPC SendMessage", err)
+		log.Error("gRPC SendMessage %v", err)
 		return
 	}
 }
 
-func registerUrls(redirects []*ModuleImportResp_UrlRedirect) {
+//TODO: remove registered urls if something error happens at middle
+func registerUrls(redirects []*ModuleImportResp_UrlRedirect) error {
 	for _, redirect := range redirects {
 		id := redirect.GetId()
 		pattern := redirect.GetPattern()
@@ -57,11 +58,13 @@ func registerUrls(redirects []*ModuleImportResp_UrlRedirect) {
 		}
 		err := UrlRegister(id, pattern, reqtype)
 		if err != nil {
-			log.Error("gRPC Init", err)
+			return err
 		}
 	}
+	return nil
 }
 
+// Init: initialize module subsystem. Disable it if fail
 func Init() {
 	conn, err := getConnect()
 	if err != nil {
@@ -73,10 +76,17 @@ func Init() {
 	defer cancel()
 	r, err := c.Init(ctx, &Req{})
 	if r.GetResp().GetStatus() != Resp_SUCCESS {
-		log.Warn("gRPC Init", r.GetResp().GetDetail())
+		log.Error("gRPC Init %v", r.GetResp().GetDetail())
+		setting.Module.Enabled = false
 		return
 	}
-	registerUrls(r.GetRedirect())
+	err = registerUrls(r.GetRedirect())
+	if err != nil {
+		log.Error("gRPC Init %v", err)
+		setting.Module.Enabled = false
+		return
+	}
+	return
 }
 
 func ModuleImport(data []byte) bool {
@@ -92,14 +102,18 @@ func ModuleImport(data []byte) bool {
 		Data: data,
 	})
 	if err != nil {
-		log.Error("gRPC ModuleImport", err)
+		log.Error("gRPC ModuleImport %v", err)
 		return false
 	}
 	if r.GetResp().GetStatus() != Resp_SUCCESS {
-		log.Warn("gRPC ModuleImport", r.GetResp().GetDetail())
+		log.Warn("gRPC ModuleImport %v", r.GetResp().GetDetail())
 		return false
 	}
-	registerUrls(r.GetRedirect())
+	err = registerUrls(r.GetRedirect())
+	if err != nil {
+		log.Warn("gRPC ModuleImport %v", err)
+		return false
+	}
 	return true
 }
 
@@ -116,18 +130,17 @@ func GlobalSettings() (gs map[string]string, ok bool) {
 	defer cancel()
 	r, err := c.GlobalSettingRequest(ctx, &Req{})
 	if err != nil {
-		log.Error("gRPC GlobalSettings", err)
+		log.Error("gRPC GlobalSettings %v", err)
 		return
 	}
 	if r.GetResp().GetStatus() != Resp_SUCCESS {
-		log.Warn("gRPC GlobalSettings", r.GetResp().GetDetail())
+		log.Warn("gRPC GlobalSettings %s", r.GetResp().GetDetail())
 		return
 	}
 	s := r.GetSettings()
 	for _, item := range s {
 		gs[item.GetModule()] = item.GetData()
 	}
-	log.Info("gRPC GlobalSettings", gs)
 	ok = true
 	return
 }
@@ -145,11 +158,11 @@ func UserSettings() (us map[string]string, ok bool) {
 	defer cancel()
 	r, err := c.UserSettingRequest(ctx, &Req{})
 	if err != nil {
-		log.Error("gRPC UserSettings", err)
+		log.Error("gRPC UserSettings %v", err)
 		return
 	}
 	if r.GetResp().GetStatus() != Resp_SUCCESS {
-		log.Warn("gRPC UserSettings", r.GetResp().GetDetail())
+		log.Warn("gRPC UserSettings %s", r.GetResp().GetDetail())
 		return
 	}
 	s := r.GetSettings()
@@ -174,11 +187,11 @@ func GlobalSetingCommit(module string, form string) bool {
 		EncodeForm: form,
 	})
 	if err != nil {
-		log.Error("gRPC GlobalSettingCommit %s", module, err)
+		log.Error("gRPC GlobalSettingCommit %s %v", module, err)
 		return false
 	}
 	if r.GetStatus() != Resp_SUCCESS {
-		log.Warn("gRPC GlobalSettingCommit %s", module, r.GetDetail())
+		log.Warn("gRPC GlobalSettingCommit %s %s", module, r.GetDetail())
 		return false
 	}
 	return true
@@ -201,11 +214,11 @@ func UserSettingCommit(uid int64, module string, form string) bool {
 		User: uid,
 	})
 	if err != nil {
-		log.Error("gRPC UserSettingCommit %s", module, err)
+		log.Error("gRPC UserSettingCommit %s %v", module, err)
 		return false
 	}
 	if r.GetStatus() != Resp_SUCCESS {
-		log.Warn("gRPC UserSettingCommit %s", module, r.GetDetail())
+		log.Warn("gRPC UserSettingCommit %s %s", module, r.GetDetail())
 		return false
 	}
 	return true
@@ -227,11 +240,11 @@ func Redirect(form map[string]string, data []byte, id int64) (content_type strin
 		Data: data,
 	})
 	if err != nil {
-		log.Error("gRPC Redirect", err)
+		log.Error("gRPC Redirect %v", err)
 		return
 	}
 	if r.GetResp().GetStatus() != Resp_SUCCESS {
-		log.Warn("gRPC Redirect", r.GetResp().GetDetail())
+		log.Warn("gRPC Redirect %s", r.GetResp().GetDetail())
 		return
 	}
 	content_type = r.GetContentType()

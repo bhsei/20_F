@@ -60,11 +60,13 @@ def get_setting_tmpls(setting_name):
 class NotifyService(service_pb2_grpc.NotifyServiceServicer):
 
     def Init(self, request, context):
+        print("Init called")
         urls = redirect_urls_transform(mod_redirect.get_urls())
         resp = service_pb2.Resp(status=service_pb2.Resp.SUCCESS)
         return service_pb2.ModuleImportResp(resp=resp, redirect=urls)
 
     def ModuleImport(self, request, context):
+        print("ModuleImport called")
         ok, name = mod_upload.extract_module(request.data, mod_server.ROOT_PATH)
         ret = service_pb2.Resp.ERROR
         if ok and mod_server.load_module(name, {}):
@@ -80,12 +82,15 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         return service_pb2.ModuleImportResp(resp=service_pb2.Resp(status=ret))
 
     def GlobalSettingRequest(self, request, context):
+        print("GlobalSettingRequest called")
         return get_setting_tmpls("global_setting")
 
     def UserSettingRequest(self, request, context):
+        print("UserSettingRequest called")
         return get_setting_tmpls("user_setting")
 
     def Redirect(self, request, context):
+        print("Redirect called")
         rid = request.id
         form = dict(request.form)
         data = bytes(request.data)
@@ -100,6 +105,7 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
             resp=service_pb2.Resp(status=service_pb2.Resp.ERROR))
 
     def SendMessage(self, request, context):
+        print("SendMessage called")
         title = request.body.title
         content = request.body.content
         url = request.body.url
@@ -111,6 +117,7 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         return service_pb2.MsgControlResp()
 
     def GlobalSettingCommit(self, request, context):
+        print("GlobalSettingCommit called")
         module = request.module
         if module not in mod_server.module_list:
             resp = service_pb2.Resp(
@@ -134,6 +141,7 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         return resp
 
     def UserSettingCommit(self, request, context):
+        print("UserSettingCommit called")
         module = request.req.module
         if module not in mod_server.module_list:
             resp = service_pb2.Resp(

@@ -7,12 +7,12 @@ def register_urls(urls: List['RedirectUrl']) -> List[int]:
 
 
 def get_urls() -> List[Tuple['RedirectUrl', int]]:
-    pass
+    return []
 
 
 def remove_urls() -> List[int]:
-    pass
+    return []
 
 
 def get_url_by_id(id: int) -> 'RedirectUrl':
-    pass
+    return None

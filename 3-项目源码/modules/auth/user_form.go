@@ -44,8 +44,8 @@ type InstallForm struct {
 	MailNotify      bool
 	WechatNotify    bool
 
-	ModHost string
-	ModPort int
+	ModuleHost string
+	ModulePort int
 
 	WechatAppId     string
 	WechatAppSecret string

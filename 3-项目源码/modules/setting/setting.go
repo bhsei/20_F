@@ -1094,7 +1094,7 @@ func NewServices() {
 	newCORSService()
 	newMailService()
 	newWechatService()
-	newModService()
+	newModuleService()
 	newRegisterMailService()
 	newNotifyMailService()
 	newNotifyWechatService()

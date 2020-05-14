@@ -97,8 +97,8 @@ func Install(ctx *context.Context) {
 	form.MailNotify = setting.Service.EnableNotifyMail
 	form.WechatNotify = setting.Service.EnableNotifyWechat
 
-	form.ModHost = setting.Mod.Host
-	form.ModPort = setting.Mod.Port
+	form.ModuleHost = setting.Module.Host
+	form.ModulePort = setting.Module.Port
 
 	form.WechatAppId = setting.Wechat.AppId
 	form.WechatAppSecret = setting.Wechat.AppSecret
@@ -316,9 +316,10 @@ func InstallPost(ctx *context.Context, form auth.InstallForm) {
 		cfg.Section("mailer").Key("ENABLED").SetValue("false")
 	}
 
-	if len(strings.TrimSpace(form.ModHost)) > 0 {
-		cfg.Section("mod").Key("HOST").SetValue(form.ModHost)
-		cfg.Section("mod").Key("PORT").SetValue(com.ToStr(form.ModPort))
+	if len(strings.TrimSpace(form.ModuleHost)) > 0 {
+		cfg.Section("module").Key("ENABLED").SetValue("true")
+		cfg.Section("module").Key("HOST").SetValue(form.ModuleHost)
+		cfg.Section("module").Key("PORT").SetValue(com.ToStr(form.ModulePort))
 	}
 
 	if len(strings.TrimSpace(form.WechatAppId)) > 0 {
