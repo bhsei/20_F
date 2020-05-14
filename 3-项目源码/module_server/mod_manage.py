@@ -94,7 +94,7 @@ class ModuleManage(object):
                 load_module(name)
             except RuntimeError:
                 pass
-        
+
         self._check = global_setting_check
         self._load = load_module
         init_database()
