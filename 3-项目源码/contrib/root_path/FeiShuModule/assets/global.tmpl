@@ -1,0 +1,15 @@
+<h4 class="ui top attached header">
+        {{.ModuleName}}
+</h4>
+<div class="ui attached segment">
+        <form class="ui form" action="{{.ModuleSubUrl}}/{{.ModuleName}}/global_setting" method="post">
+                {{.CsrfTokenHtml}}
+                <div class="required field">
+                        <label for="site_name">站点名称(用于在消息标题中使用)</label>
+                        <input id="site_name" name="site_name" value='{{index .ModuleSetting "site_name"}}' data-name='{{index .ModuleSetting "site_name"}}' autofocus required>
+                </div>
+                <div class="field">
+                        <button class="ui green button">Update Setting</button>
+                </div>
+        </form>
+</div>

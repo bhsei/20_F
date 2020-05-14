@@ -1,0 +1,7 @@
+{
+    "version": "v0.1",
+    "name": "FeiShu通知",
+    "author": "NGitea",
+    "globalSetting": ["site_name"],
+    "userSetting": ["bot_url"]
+}
