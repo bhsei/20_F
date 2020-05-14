@@ -21,7 +21,7 @@ class FeiShuModule(ModuleAbstract):
                                  timeout=20)
         return response.text
 
-    def __init__(self, db_proxy, config, global_setting: SettingType = None):
+    def __init__(self, db_proxy, config):
         """
         :param db_proxy: 数据库代理对象，有如下方法:
             load(user_id: int) -> Dict[str, str] 返回当前模块的个人设置，若没有则为None
@@ -29,7 +29,7 @@ class FeiShuModule(ModuleAbstract):
         :param dict config: 模块config.json文件内容解析成的dict
         :param dict global_setting: 模块全局设置
         """
-        super(FeiShuModule).__init__(db_proxy, config, global_setting)
+        super(FeiShuModule, self).__init__(db_proxy, config)
 
     def send(self, title: str, content: str, url: str, uer_id: int) -> int:
         setting = self.db_proxy.load(uer_id)
@@ -50,9 +50,9 @@ class FeiShuModule(ModuleAbstract):
         if not re.match(r"https://open\.feishu\.cn/open-apis/bot/hook/[0-9a-z]*?", setting.get('bot_url')):
             return False
 
-        self.db_proxy.store(user_id, setting)
+        super(FeiShuModule, self).user_setting_check(user_id, setting)
         return True
 
 
-def load_module(db_proxy, config, global_setting: SettingType):
-    return FeiShuModule(db_proxy, config, global_setting)
+def load_module(db_proxy, config):
+    return FeiShuModule(db_proxy, config)
