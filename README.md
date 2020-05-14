@@ -13,23 +13,23 @@
 
 ## gRPC生成
 
-以下命令假定工作目录位于`3-项目源码/modules/notification/proto/`。
+以下命令假定工作目录位于`3-项目源码/`。
 
 将协议定义编译至Python代码用如下命令：
 ```
-python -m grpc_tools.protoc -I. --python_out=../module_server --grpc_python_out=../module_server service.proto
+python -m grpc_tools.protoc -I. --python_out=./module_server --grpc_python_out=./module_server service.proto
 ```
-相关依赖请使用 `pip install -r ../module_server/requirements.txt ` 安装
+相关依赖请使用 `pip install -r module_server/requirements.txt ` 安装
 
 编译至Go代码用如下命令：
 ```
-protoc --gogofast_out=plugins=grpc:../../../services/module service.proto
+protoc --gogofast_out=plugins=grpc:./services/module service.proto
 ```
 相关依赖安装请参考[gogo](https://github.com/gogo/protobuf)
 
 ## 通知服务模块
 
-通知服务模块位于`3-项目源码/modules/notification/module_server`，入口文件为`mod_entry.py`，使用下列命令运行：
+通知服务模块位于`3-项目源码/module_server`，入口文件为`mod_entry.py`，使用下列命令运行：
 ```
 python mod_entry.py -r <root_path> -p <port>
 ```
