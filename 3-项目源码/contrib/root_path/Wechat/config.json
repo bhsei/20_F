@@ -1,0 +1,7 @@
+{
+    "version": "v0.1",
+    "name": "Wechat",
+    "author": "swhc",
+    "globalSetting": ["app_id", "app_secret", "token"],
+    "userSetting": ["open_id"]
+}
