@@ -285,6 +285,22 @@ class DBOperation:
         else:
             return False
 
+    def db_query_setting(self, cols):
+        if self.db_connection is None:
+            raise pymysql.Error
+        db = self.db_connection
+        cursor = db.cursor()
+
+        q = map(lambda k: "{} = '{}'".format(k, cols[k]), cols.keys())
+        stmt = "SELECT ID FROM USER WHERE {}".format(" AND ".join(q))
+        try:
+            cursor.execute(stmt)
+            query_all = cursor.fetchall()
+            return list(map(lambda q: q[0], query_all))
+        except pymysql.Error as e:
+            raise e
+        return []
+
     def db_query(self, id, cols=None):
         """ the Query api
 

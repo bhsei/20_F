@@ -45,30 +45,39 @@ class Wechat(ModuleAbstract):
             return "text/html", b""
         return "text/html", bytes(echostr, "utf8")
 
+    def unsubscribe(self, form):
+        open_id = form["FromUserName"]
+        ids = self.db_proxy.load({"open_id": open_id})
+        for user in ids:
+            self.db_proxy.store(user, {"open_id": ""})
+
+    def subscribe(self, form):
+        open_id = form["FromUserName"]
+        uid = form["EventKey"][len("qrscene_"):]
+        uid = int(uid)
+        self.db_proxy.store(uid, {"open_id": open_id})
+
+    def scan(self, form):
+        open_id = form["FromUserName"]
+        uid = form["EventKey"]
+        uid = int(uid)
+        self.db_proxy.store(uid, {"open_id": open_id})
+
     def watch_event_post(self, form, data):
-        data = xmltodict.parse(data)
         try:
+            data = xmltodict.parse(data)
             data = data["xml"]
             event = data["Event"]
-            event_key = data["EventKey"]
-            ticket = data["Ticket"]
-            msgtype = data["MsgType"]
-            CreateTime = data["CreateTime"]
-            open_id = data["FromUserName"]
         except KeyError:
             return "text/html", b""
 
-        if event == "subscribe" or event == "unsubscribe":
-            userid = event_key[len("qrscene_"):]
-        elif event == "SCAN":
-            userid = event_key
-            event = "subscribe"
-
-        userid = int(userid)
-        if event == "subscribe":
-            self.db_proxy.store(userid, {"open_id": open_id})
+        if event == "SCAN":
+            self.scan(data)
+        elif event == "subscribe":
+            self.subscribe(data)
         elif event == "unsubscribe":
-            self.db_proxy.store(userid, {"open_id": ""})
+            self.unsubscribe(data)
+
         return "text/html", b""
 
     def send(self, title, content, url, user_id):

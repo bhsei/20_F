@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 def remove_prefix(text: str, prefix: str):
     if text.startswith(prefix):
@@ -15,7 +15,7 @@ class DBProxy(object):
         self.db = db
         self.db.db_add_setting(self.plist)
 
-    def load(self, uid: int) -> Dict[str, str]:
+    def _load_by_id(self, uid: int) -> Dict[str, str]:
         settings = self.db.db_query(uid)
         if settings is None:
             return None
@@ -28,6 +28,19 @@ class DBProxy(object):
             t = remove_prefix(item, self.prefix)
             result[t] = settings[item]
         return result
+
+    def _load_by_dict(self, cols: Dict[str, str]) -> List[int]:
+        target = {}
+        for key in cols.keys():
+            target[self.prefix + key] = cols[key]
+        return self.db.db_query_setting(target)
+
+    def load(self, key: Union[Dict[str, str], int]) -> Union[Dict[str, str], List[int]]:
+        if type(key) == dict:
+            return self._load_by_dict(key)
+        if type(key) == int:
+            return self._load_by_id(key)
+        return None
 
     def store(self, uid: int, data: Dict[str, str]) -> bool:
         f = {}
