@@ -23,7 +23,7 @@ class DBProxy(object):
         for item in self.plist:
             if item not in settings:
                 return None
-            if settings[item] == "":
+            if settings[item] is None or settings[item] == "":
                 return None
             t = remove_prefix(item, self.prefix)
             result[t] = settings[item]

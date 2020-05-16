@@ -113,12 +113,12 @@ func SetModules(ctx *context.Context, x csrf.CSRF) {
 	for module, setting := range settings {
 		s := ModuleSpec{
 			ModuleName:     module,
-			ModuleSetting:  map[string]string{},
+			ModuleSetting:  setting.OldSetting,
 			ModuleSubUrl:   moduleSubUrl,
 			RedirectSubUrl: moduleSubUrl + "/redirect/" + module,
 			CsrfTokenHtml:  csrfTokenHtml,
 		}
-		parser, err := template.New(module).Parse(setting)
+		parser, err := template.New(module).Parse(setting.Tmpl)
 		if err != nil {
 			log.Warn("SetModule parse %s error", module, err)
 			continue
@@ -136,7 +136,7 @@ func SetModules(ctx *context.Context, x csrf.CSRF) {
 }
 
 func UserSetModule(ctx *context.Context, x csrf.CSRF) {
-	settings, ok := module_service.UserSettings()
+	settings, ok := module_service.UserSettings(ctx.User.ID)
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsSettingsModules"] = true
 	moduleSubUrl := setting.AppSubURL + "/module"
@@ -151,12 +151,12 @@ func UserSetModule(ctx *context.Context, x csrf.CSRF) {
 	for module, setting := range settings {
 		s := ModuleSpec{
 			ModuleName:     module,
-			ModuleSetting:  map[string]string{},
+			ModuleSetting:  setting.OldSetting,
 			ModuleSubUrl:   moduleSubUrl,
 			RedirectSubUrl: moduleSubUrl + "/redirect/" + module,
 			CsrfTokenHtml:  csrfTokenHtml,
 		}
-		parser, err := template.New(module).Parse(setting)
+		parser, err := template.New(module).Parse(setting.Tmpl)
 		if err != nil {
 			log.Warn("UserSetModule parse %s error", module, err)
 			continue

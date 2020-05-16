@@ -12,6 +12,7 @@ message MsgControl {
 }
 
 message Req {
+    int64 user = 1;
 }
 
 message Resp {
@@ -62,6 +63,7 @@ message SettingResp {
     message Setting {
         string module = 1;
         string data = 2;
+        map<string, string> old_settings = 3;
     }
 }
 

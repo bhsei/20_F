@@ -85,6 +85,7 @@ class ModuleManage(object):
                     "user_tmpl": user_tmpl,
                     "config": conf,
                     "object": obj,
+                    "db_proxy": proxy,
                     }
             self._check(name)
             urls = self._redirect_manager.register_urls(name, obj.get_redirect_urls())
@@ -109,12 +110,25 @@ class ModuleManage(object):
             return None
         return self._load(name)
 
-    def global_tmpls(self) -> List[str]:
-        return list(map(lambda k: (k, self._mlist[k]["global_tmpl"]), self._mlist.keys()))
+    def global_tmpls(self) -> Tuple[List[str], Dict[str, str]]:
+        modules = list(self._mlist.keys())
+        def get_setting(module):
+            res = {}
+            gs = self._mlist[module]["config"]["globalSetting"]
+            for g in gs:
+                res[g] = self._config.get(module, g, "")
+            return res
 
-    def user_tmpls(self) -> List[Tuple[str, str]]:
+        return list(map(lambda k: (k, self._mlist[k]["global_tmpl"], get_setting(k)), modules))
+
+    def user_tmpls(self, uid: int) -> List[Tuple[str, str]]:
         valid = filter(lambda k: self._mlist[k]["status"] == self.NORMAL, self._mlist.keys())
-        tmpls = map(lambda k: (k, self._mlist[k]["user_tmpl"]), valid)
+        valid = list(valid)
+        def get_setting(module):
+            proxy = self._mlist[module]["db_proxy"]
+            data = proxy.load(uid)
+            return {} if data is None else data
+        tmpls = map(lambda k: (k, self._mlist[k]["user_tmpl"], get_setting(k)), valid)
         return list(tmpls)
 
     def add_global_setting(self, module: str, settings: Dict[str, str]) -> bool:
@@ -125,7 +139,7 @@ class ModuleManage(object):
         obj = self._mlist[module]["object"]
         f = {}
         for g in gs:
-            if g not in settings or not settings[g]:
+            if g not in settings:
                 print("setting {} is not valid".format(g))
                 return False
             f[g] = settings[g]
@@ -144,7 +158,7 @@ class ModuleManage(object):
         obj = self._mlist[module]["object"]
         f = {}
         for u in us:
-            if u not in settings or not settings[u]:
+            if u not in settings:
                 print("{} not in setting".format(u))
                 return False
             f[u] = settings[u]

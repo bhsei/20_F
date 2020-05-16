@@ -13,6 +13,11 @@ const (
 	DefaultTimeOut = time.Second
 )
 
+type SettingPack struct {
+	Tmpl       string
+	OldSetting map[string]string
+}
+
 func getConnect() (conn *grpc.ClientConn, err error) {
 	addr := fmt.Sprintf("%s:%d", setting.Module.Host, setting.Module.Port)
 	conn, err = grpc.Dial(addr, grpc.WithInsecure())
@@ -117,8 +122,8 @@ func ModuleImport(data []byte) bool {
 	return true
 }
 
-func GlobalSettings() (gs map[string]string, ok bool) {
-	gs = map[string]string{}
+func GlobalSettings() (gs map[string]SettingPack, ok bool) {
+	gs = map[string]SettingPack{}
 	conn, err := getConnect()
 	ok = false
 	if err != nil {
@@ -139,14 +144,17 @@ func GlobalSettings() (gs map[string]string, ok bool) {
 	}
 	s := r.GetSettings()
 	for _, item := range s {
-		gs[item.GetModule()] = item.GetData()
+		gs[item.GetModule()] = SettingPack{
+			Tmpl:       item.GetData(),
+			OldSetting: item.GetOldSettings(),
+		}
 	}
 	ok = true
 	return
 }
 
-func UserSettings() (us map[string]string, ok bool) {
-	us = map[string]string{}
+func UserSettings(user_id int64) (us map[string]SettingPack, ok bool) {
+	us = map[string]SettingPack{}
 	conn, err := getConnect()
 	ok = false
 	if err != nil {
@@ -156,7 +164,9 @@ func UserSettings() (us map[string]string, ok bool) {
 	c := NewNotifyServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeOut)
 	defer cancel()
-	r, err := c.UserSettingRequest(ctx, &Req{})
+	r, err := c.UserSettingRequest(ctx, &Req{
+		User: user_id,
+	})
 	if err != nil {
 		log.Error("gRPC UserSettings %v", err)
 		return
@@ -167,7 +177,10 @@ func UserSettings() (us map[string]string, ok bool) {
 	}
 	s := r.GetSettings()
 	for _, item := range s {
-		us[item.GetModule()] = item.GetData()
+		us[item.GetModule()] = SettingPack{
+			Tmpl:       item.GetData(),
+			OldSetting: item.GetOldSettings(),
+		}
 	}
 	ok = true
 	return

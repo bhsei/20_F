@@ -19,9 +19,9 @@ def redirect_urls_transform(urls):
     return list(map(tr, urls))
 
 def get_setting_tmpls(tmpls):
-    def F(m, t):
-        return service_pb2.SettingResp.Setting(module = m, data = t)
-    settings = map(lambda x: F(x[0], x[1]), tmpls)
+    def F(m, t, o):
+        return service_pb2.SettingResp.Setting(module = m, data = t, old_settings = o)
+    settings = map(lambda x: F(x[0], x[1], x[2]), tmpls)
     status = service_pb2.Resp.SUCCESS
     resp = service_pb2.Resp(status = status)
     return service_pb2.SettingResp(resp = resp, settings = list(settings))
@@ -58,7 +58,8 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
 
     def UserSettingRequest(self, request, context):
         print("UserSettingRequest called")
-        return get_setting_tmpls(self._module_manager.user_tmpls())
+        user = request.user
+        return get_setting_tmpls(self._module_manager.user_tmpls(user))
 
     def Redirect(self, request, context):
         print("Redirect called")
@@ -102,7 +103,7 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         module = request.req.module
         encode_form = request.req.encode_form
         uid = request.user
-        form = urllib.parse.parse_qs(encode_form)
+        form = urllib.parse.parse_qs(encode_form, keep_blank_values = True)
         for key in form.keys():
             form[key] = form[key][0]
         ok = self._module_manager.add_user_setting(module, uid, form)
