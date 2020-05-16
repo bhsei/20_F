@@ -60,9 +60,9 @@ class Wechat(ModuleAbstract):
 
         if event == "subscribe" or event == "unsubscribe":
             userid = event_key[len("qrscene_"):]
-        else:
+        elif event == "SCAN":
             userid = event_key
-            event = "unsubscribe"
+            event = "subscribe"
 
         userid = int(userid)
         if event == "subscribe":
