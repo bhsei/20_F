@@ -6,15 +6,15 @@
                 {{.CsrfTokenHtml}}
                 <div class="required field">
                         <label for="app_id">AppId</label>
-                        <input id="app_id" name="app_id" value='{{index .ModuleSetting "AppId"}}' data-name='{{index .ModuleSetting "AppId"}}' autofocus required>
+                        <input id="app_id" name="app_id" value='{{index .ModuleSetting "app_id"}}' data-name='{{index .ModuleSetting "app_id"}}' autofocus required>
                 </div>
                 <div class="required field">
                         <label for="app_secret">AppSecret</label>
-                        <input id="app_secret" name="app_secret" value='{{index .ModuleSetting "AppSecret"}}' data-name='{{index .ModuleSetting "AppSecret"}}' autofocus required>
+                        <input id="app_secret" name="app_secret" value='{{index .ModuleSetting "app_secret"}}' data-name='{{index .ModuleSetting "app_secret"}}' autofocus required>
                 </div>
                 <div class="required field">
                         <label for="token">Token</label>
-                        <input id="token" name="token" value='{{index .ModuleSetting "Token"}}' data-name='{{index .ModuleSetting "Token"}}' autofocus required>
+                        <input id="token" name="token" value='{{index .ModuleSetting "token"}}' data-name='{{index .ModuleSetting "token"}}' autofocus required>
                 </div>
                 <div class="field">
                         <button class="ui green button">Update Setting</button>

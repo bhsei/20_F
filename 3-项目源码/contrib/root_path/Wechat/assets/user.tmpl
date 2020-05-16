@@ -1,6 +1,7 @@
 <h4 class="ui top attached header">
         {{.ModuleName}}
 </h4>
+{{if eq (index .ModuleSetting "open_id") ""}}
 <div class="ui attached segment">
         <div class="ui email list">
                 <div class="ui card">
@@ -10,4 +11,22 @@
                 </div>
         </div>
 </div>
+{{else}}
+<div class="ui attached segment">
+        <div class="ui email list">
+                <div class="item">
+                        <div class="content">
+                                <strong>{{index .ModuleSetting "open_id"}}</strong>
+                        </div>
+                </div>
+        </div>
+</div>
+<div class="ui attached bottom segment">
+        <form class="ui form" action="{{.ModuleSubUrl}}/{{.ModuleName}}/user_setting" method="post">
+                {{.CsrfTokenHtml}}
+                <input name="open_id" value="" hidden>
+                <button class="ui red button">disconnect</button>
+        </form>
+</div>
+{{end}}
 
