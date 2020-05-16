@@ -66,9 +66,9 @@ class ModuleManage(object):
             global_tmpl = assets_path.joinpath("global.tmpl")
             user_tmpl = assets_path.joinpath("user.tmpl")
 
-            global_tmpl = global_tmpl.read_text()
-            user_tmpl = user_tmpl.read_text()
-            conf = json.loads(conf.read_text())
+            global_tmpl = global_tmpl.read_text(encoding="utf-8")
+            user_tmpl = user_tmpl.read_text(encoding="utf-8")
+            conf = json.loads(conf.read_text(encoding="utf-8"))
 
             if not mod_util.check_module_config(conf):
                 raise ValueError("{}: config.json parse error".format(name))
