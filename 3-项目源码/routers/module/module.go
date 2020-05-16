@@ -13,6 +13,8 @@ import (
 	gouuid "github.com/satori/go.uuid"
 	"github.com/unknwon/com"
 	"html/template"
+	"reflect"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -94,6 +96,16 @@ func ModuleImport(ctx *context.Context) {
 	return
 }
 
+func sortedMapKeys(m interface{}) (keyList []string) {
+	keys := reflect.ValueOf(m).MapKeys()
+
+	for _, key := range keys {
+		keyList = append(keyList, key.Interface().(string))
+	}
+	sort.Strings(keyList)
+	return
+}
+
 //TODO: add self-defined setting data
 func SetModules(ctx *context.Context, x csrf.CSRF) {
 	settings, ok := module_service.GlobalSettings()
@@ -110,7 +122,8 @@ func SetModules(ctx *context.Context, x csrf.CSRF) {
 		return
 	}
 	modules := make([]template.HTML, 0, 10)
-	for module, setting := range settings {
+	for _, module := range sortedMapKeys(settings) {
+		setting := settings[module]
 		s := ModuleSpec{
 			ModuleName:     module,
 			ModuleSetting:  setting.OldSetting,
@@ -148,7 +161,8 @@ func UserSetModule(ctx *context.Context, x csrf.CSRF) {
 		return
 	}
 	modules := make([]template.HTML, 0, 10)
-	for module, setting := range settings {
+	for _, module := range sortedMapKeys(settings) {
+		setting := settings[module]
 		s := ModuleSpec{
 			ModuleName:     module,
 			ModuleSetting:  setting.OldSetting,
