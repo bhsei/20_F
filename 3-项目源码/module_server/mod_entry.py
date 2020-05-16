@@ -11,9 +11,8 @@ import logging
 
 def main(root_path, port):
     root_path = pathlib.Path(root_path)
-    module_manager = mod_manage.ModuleManage(root_path)
     redirect_manager = mod_redirect.ModuleRedirect()
-    redirect_manager.register_urls(module_manager.get_redirect_urls())
+    module_manager = mod_manage.ModuleManage(root_path, redirect_manager)
     logging.basicConfig()
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     service = mod_service.NotifyService(module_manager,redirect_manager)

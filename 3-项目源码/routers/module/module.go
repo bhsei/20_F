@@ -32,6 +32,7 @@ type ModuleSpec struct {
 	ModuleTemplate string
 	ModuleSetting  map[string]string
 	ModuleSubUrl   string
+	RedirectSubUrl string
 	CsrfTokenHtml  template.HTML
 }
 
@@ -111,10 +112,11 @@ func SetModules(ctx *context.Context, x csrf.CSRF) {
 	modules := make([]template.HTML, 0, 10)
 	for module, setting := range settings {
 		s := ModuleSpec{
-			ModuleName:    module,
-			ModuleSetting: map[string]string{},
-			ModuleSubUrl:  moduleSubUrl,
-			CsrfTokenHtml: csrfTokenHtml,
+			ModuleName:     module,
+			ModuleSetting:  map[string]string{},
+			ModuleSubUrl:   moduleSubUrl,
+			RedirectSubUrl: moduleSubUrl + "/redirect/" + module,
+			CsrfTokenHtml:  csrfTokenHtml,
 		}
 		parser, err := template.New(module).Parse(setting)
 		if err != nil {
@@ -148,10 +150,11 @@ func UserSetModule(ctx *context.Context, x csrf.CSRF) {
 	modules := make([]template.HTML, 0, 10)
 	for module, setting := range settings {
 		s := ModuleSpec{
-			ModuleName:    module,
-			ModuleSetting: map[string]string{},
-			ModuleSubUrl:  moduleSubUrl,
-			CsrfTokenHtml: csrfTokenHtml,
+			ModuleName:     module,
+			ModuleSetting:  map[string]string{},
+			ModuleSubUrl:   moduleSubUrl,
+			RedirectSubUrl: moduleSubUrl + "/redirect/" + module,
+			CsrfTokenHtml:  csrfTokenHtml,
 		}
 		parser, err := template.New(module).Parse(setting)
 		if err != nil {

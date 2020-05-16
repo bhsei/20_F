@@ -63,7 +63,8 @@ class DBOperation:
         try:
             cursor.execute(stmt)
             db.commit()
-        except pymysql.MySQLError:
+        except pymysql.MySQLError as e:
+            print(e);
             db.rollback()
             return -3
 
@@ -97,7 +98,8 @@ class DBOperation:
         try:
             cursor.execute(stmt)
             db.commit()
-        except pymysql.MySQLError:
+        except pymysql.MySQLError as e:
+            print(e);
             db.rollback()
             return -3
 
@@ -130,7 +132,7 @@ class DBOperation:
         if exist_records is not None:
             tmp = ""
             for i in ls:
-                tmp += str(i[0]) + "=" + str(i[1]) + ","
+                tmp += str(i[0]) + "='" + str(i[1]) + "',"
             tmp = tmp[:-1]
             stmt = 'UPDATE USER SET ' + tmp + ' WHERE id={}'.format(ID)
         else:
@@ -139,7 +141,8 @@ class DBOperation:
         try:
             cursor.execute(stmt)
             db.commit()
-        except pymysql.MySQLError:
+        except pymysql.MySQLError as e:
+            print(e)
             db.rollback()
             return -3
         return 1
@@ -181,7 +184,8 @@ class DBOperation:
         try:
             cursor.execute(stmt)
             db.commit()
-        except pymysql.MySQLError:
+        except pymysql.MySQLError as e:
+            print(e)
             db.rollback()
             return -3
 
@@ -222,7 +226,8 @@ class DBOperation:
         try:
             cursor.execute(stmt)
             db.commit()
-        except pymysql.MySQLError:
+        except pymysql.MySQLError as e:
+            print(e)
             db.rollback()
             return -3
 

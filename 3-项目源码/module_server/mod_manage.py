@@ -1,6 +1,7 @@
 from pathlib import Path
 import mod_config
 import mod_util
+from mod_redirect import ModuleRedirect
 from module_definition import RedirectUrl
 import db_operation
 import db_proxy
@@ -22,10 +23,11 @@ class ModuleManage(object):
     _check = None
     _load = None
 
-    def __init__(self, root_path: 'Path'):
+    def __init__(self, root_path: 'Path', redirect_manager: 'ModuleRedirect'):
         """read root_path directory, initialize Config and load all modules
         """
         self._root_path = root_path
+        self._redirect_manager = redirect_manager
         self._mlist = {}
         root_path.mkdir(parents = True, exist_ok = True)
         config_path = root_path.joinpath("config.ini")
@@ -85,8 +87,9 @@ class ModuleManage(object):
                     "object": obj,
                     }
             self._check(name)
+            urls = self._redirect_manager.register_urls(name, obj.get_redirect_urls())
             print("load {}".format(name))
-            return obj.get_redirect_urls()
+            return urls
 
 
         def load(name):
@@ -99,14 +102,6 @@ class ModuleManage(object):
         self._load = load_module
         init_database()
         list(map(load, modules))
-
-    def get_redirect_urls(self, module = None) -> List['RedirectUrl']:
-        if module is None:
-            urls = list(map(lambda val: val["object"].get_redirect_urls(), self._mlist.values()))
-            return [item for sub in urls for item in sub]
-        if module not in self._mlist:
-            return []
-        return self._mlist[module]["object"].get_redirect_urls()
 
     def load_module(self, data: bytes) -> Union[List['RedirectUrl'], type(None)]:
         ok, name = mod_util.extract_module(data, self._root_path)
@@ -124,15 +119,18 @@ class ModuleManage(object):
 
     def add_global_setting(self, module: str, settings: Dict[str, str]) -> bool:
         if module not in self._mlist:
+            print("module {} not in module list".format(module))
             return False
         gs = self._mlist[module]["config"]["globalSetting"]
         obj = self._mlist[module]["object"]
         f = {}
         for g in gs:
             if g not in settings or not settings[g]:
+                print("setting {} is not valid".format(g))
                 return False
             f[g] = settings[g]
         if not obj.global_setting_check(f):
+            print("setting check error")
             return False
         self._mlist[module]["status"] = self.NORMAL
         list(map(lambda key: self._config.set(module, key, f[key]), f.keys()))
@@ -140,25 +138,25 @@ class ModuleManage(object):
 
     def add_user_setting(self, module: str, user_id: int, settings: Dict[str, str]) -> bool:
         if module not in self._mlist:
-            print("no module")
+            print("module {} not in module list".format(module))
             return False
         us = self._mlist[module]["config"]["userSetting"]
         obj = self._mlist[module]["object"]
         f = {}
         for u in us:
             if u not in settings or not settings[u]:
-                print("not in setting")
+                print("{} not in setting".format(u))
                 return False
             f[u] = settings[u]
         if not obj.user_setting_check(user_id, f):
-            print("check error")
+            print("setting check error")
             return False
         return True
 
     def send(self, title, content, url, users):
         for user in users:
             for d in self._mlist.values():
-                if d["status"] == NORMAL:
+                if d["status"] == self.NORMAL:
                     d["object"].send(title, content, url, user)
 
     def save_state(self):

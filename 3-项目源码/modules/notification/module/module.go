@@ -40,9 +40,9 @@ func (ns *notificationService) Run() {
 }
 
 // TODO: generate URL for message
-func doSend(issue *models.Issue, user *models.User) {
+func doSend(issue *models.Issue, user *models.User, userID int64) {
 	msg := fmt.Sprintf("issue: %d, author: %s", issue.ID, user.Name)
-	module.SendMessage("Issue", msg, "", []int64{user.ID})
+	module.SendMessage("Issue", msg, "", []int64{userID})
 }
 
 func sendNotification(opts issueNotificationOpts) error {
@@ -71,7 +71,7 @@ func sendNotification(opts issueNotificationOpts) error {
 			return nil
 		}
 		alreadyNotified[userID] = struct{}{}
-		doSend(issue, user)
+		doSend(issue, user, userID)
 		return nil
 	}
 	for _, issueWatch := range issueWatches {
@@ -98,7 +98,7 @@ func sendNotification(opts issueNotificationOpts) error {
 			return err
 		}
 	}
-	return nil
+	return notifyUser(issue.Repo.OwnerID)
 }
 
 func (ns *notificationService) NotifyCreateIssueComment(doer *models.User, repo *models.Repository,

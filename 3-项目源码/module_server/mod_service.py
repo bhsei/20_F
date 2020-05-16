@@ -2,6 +2,7 @@ import service_pb2_grpc
 import service_pb2
 from mod_redirect import ModuleRedirect
 from mod_manage import ModuleManage
+from module_definition import RedirectUrl
 import urllib.parse
 
 def redirect_urls_transform(urls):
@@ -10,12 +11,11 @@ def redirect_urls_transform(urls):
     def tr(url):
         url_id = url[1]
         pattern = url[0].url_pattern
-        if url[0].url_type == mod_redirect.RedirectUrl.URL_GET:
+        if url[0].url_type == RedirectUrl.URL_GET:
             url_type = import_resp.UrlRedirect.GET
         else:
             url_type = import_resp.UrlRedirect.POST
         return import_resp.UrlRedirect(id=url_id, pattern=pattern, url_type=url_type)
-
     return list(map(tr, urls))
 
 def get_setting_tmpls(tmpls):
@@ -37,7 +37,7 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
 
     def Init(self, request, context):
         print("Init called")
-        urls = self._module_manager.get_redirect_urls()
+        urls = self._redirect_manager.get_urls()
         urls = redirect_urls_transform(urls)
         resp = service_pb2.Resp(status=service_pb2.Resp.SUCCESS)
         return service_pb2.ModuleImportResp(resp=resp, redirect=urls)
@@ -47,7 +47,6 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         urls = self._module_manager.load_module(request.data)
         ret = service_pb2.Resp.ERROR
         if urls is not None:
-            self._redirect_manager.register_urls(urls)
             urls = redirect_urls_transform(urls)
             ret = service_pb2.Resp.SUCCESS
             return service_pb2.ModuleImportResp(resp=service_pb2.Resp(status=ret), redirect=urls)
