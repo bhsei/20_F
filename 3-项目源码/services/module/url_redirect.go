@@ -28,13 +28,13 @@ func UrlRegister(id int64, url string, request_type ReqType) error {
 }
 
 func UrlRedirectRequest(form map[string]string, data []byte, url string, request ReqType) (
-	content_type string, payload []byte, redirected bool) {
+	content_type string, payload []byte, redirected bool, msg string) {
 	key := fmt.Sprintf("%d%s", request, url)
 	spec_data, redirected := redirectMap.Load(key)
 	if !redirected {
-		return "", []byte{}, false
+		return "", []byte{}, false, fmt.Sprintf("%s not found", key)
 	}
 	id, _ := spec_data.(int64)
-	content_type, payload, redirected = Redirect(form, data, id)
+	content_type, payload, redirected, msg = Redirect(form, data, id)
 	return
 }

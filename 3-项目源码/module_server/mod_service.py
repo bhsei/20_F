@@ -44,13 +44,18 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
 
     def ModuleImport(self, request, context):
         print("ModuleImport called")
-        urls = self._module_manager.load_module(request.data)
+        urls = None
+        err = ""
+        try:
+            urls = self._module_manager.load_module(request.data)
+        except ValueError as e:
+            err = str(e)
         ret = service_pb2.Resp.ERROR
         if urls is not None:
             urls = redirect_urls_transform(urls)
             ret = service_pb2.Resp.SUCCESS
             return service_pb2.ModuleImportResp(resp=service_pb2.Resp(status=ret), redirect=urls)
-        return service_pb2.ModuleImportResp(resp=service_pb2.Resp(status=ret))
+        return service_pb2.ModuleImportResp(resp=service_pb2.Resp(status=ret, detail = err))
 
     def GlobalSettingRequest(self, request, context):
         print("GlobalSettingRequest called")
@@ -74,7 +79,7 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
                 content_type=content_type,
                 data=payload)
         return service_pb2.RedirectResp(
-            resp=service_pb2.Resp(status=service_pb2.Resp.ERROR))
+            resp=service_pb2.Resp(status=service_pb2.Resp.ERROR, detail = "{} not found".format(rid)))
 
     def SendMessage(self, request, context):
         print("SendMessage called")
@@ -92,11 +97,14 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         form = urllib.parse.parse_qs(encode_form)
         for key in form.keys():
             form[key] = form[key][0]
-        ok = self._module_manager.add_global_setting(module, form)
+        err = ""
         status = service_pb2.Resp.SUCCESS
-        if not ok:
+        try:
+            self._module_manager.add_global_setting(module, form)
+        except ValueError as e:
             status = service_pb2.Resp.ERROR
-        return service_pb2.Resp(status = status)
+            err = str(e)
+        return service_pb2.Resp(status = status, detail = err)
 
     def UserSettingCommit(self, request, context):
         print("UserSettingCommit called")
@@ -106,8 +114,11 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         form = urllib.parse.parse_qs(encode_form, keep_blank_values = True)
         for key in form.keys():
             form[key] = form[key][0]
-        ok = self._module_manager.add_user_setting(module, uid, form)
-        status=service_pb2.Resp.ERROR
-        if ok:
-            status = service_pb2.Resp.SUCCESS
-        return service_pb2.Resp(status=status)
+        err = ""
+        status = service_pb2.Resp.SUCCESS
+        try:
+            self._module_manager.add_user_setting(module, uid, form)
+        except ValueError as e:
+            status = service_pb2.Resp.ERROR
+            err = str(e)
+        return service_pb2.Resp(status=status, detail = err)

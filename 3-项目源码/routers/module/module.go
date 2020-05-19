@@ -85,9 +85,9 @@ func ModuleImport(ctx *context.Context) {
 	}
 	attachments.Delete(name)
 	data, _ := file.([]byte)
-	ok = module_service.ModuleImport(data)
+	ok, err := module_service.ModuleImport(data)
 	if !ok {
-		ctx.Flash.Error("Import module error")
+		ctx.Flash.Error(fmt.Sprintf("Import module error: %s", err))
 		ctx.Redirect(setting.AppSubURL + "/admin/modules")
 		return
 	}
@@ -108,19 +108,22 @@ func sortedMapKeys(m interface{}) (keyList []string) {
 
 //TODO: add self-defined setting data
 func SetModules(ctx *context.Context, x csrf.CSRF) {
-	settings, ok := module_service.GlobalSettings()
+	settings, ok, err := module_service.GlobalSettings()
 	ctx.Data["Title"] = ctx.Tr("admin.modules")
 	ctx.Data["PageIsAdmin"] = true
 	ctx.Data["PageIsAdminModules"] = true
 	renderAttachmentSetting(ctx)
+
+	if !ok {
+		ctx.Flash.Error(fmt.Sprintf("Get module settings error: %s", err))
+		ctx.Redirect(setting.AppSubURL + "/admin/modules")
+		return
+	}
+
 	moduleSubUrl := setting.AppSubURL + "/module"
 	csrfToken := x.GetToken()
 	csrfTokenHtml := template.HTML(`<input type="hidden" name="_csrf" value="` + csrfToken + `">`)
 
-	if !ok {
-		log.Info("SetModule", settings)
-		return
-	}
 	modules := make([]template.HTML, 0, 10)
 	for _, module := range sortedMapKeys(settings) {
 		setting := settings[module]
@@ -134,12 +137,14 @@ func SetModules(ctx *context.Context, x csrf.CSRF) {
 		parser, err := template.New(module).Parse(setting.Tmpl)
 		if err != nil {
 			log.Warn("SetModule parse %s error", module, err)
+			ctx.Flash.Warning(fmt.Sprintf("Render %s error: %v", module, err))
 			continue
 		}
 		buffer := bytes.Buffer{}
 		err = parser.Execute(&buffer, s)
 		if err != nil {
 			log.Warn("Set Module execute %s error", module, err)
+			ctx.Flash.Warning(fmt.Sprintf("Render %s error: %v", module, err))
 			continue
 		}
 		modules = append(modules, template.HTML(buffer.String()))
@@ -149,9 +154,16 @@ func SetModules(ctx *context.Context, x csrf.CSRF) {
 }
 
 func UserSetModule(ctx *context.Context, x csrf.CSRF) {
-	settings, ok := module_service.UserSettings(ctx.User.ID)
+	settings, ok, err := module_service.UserSettings(ctx.User.ID)
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsSettingsModules"] = true
+
+	if !ok {
+		ctx.Flash.Error(fmt.Sprintf("Get user settings error: %s", err))
+		ctx.Redirect(setting.AppSubURL + "/user/settings/modules")
+		return
+	}
+
 	moduleSubUrl := setting.AppSubURL + "/module"
 	csrfToken := x.GetToken()
 	csrfTokenHtml := template.HTML(`<input type="hidden" name="_csrf" value="` + csrfToken + `">`)
@@ -173,12 +185,14 @@ func UserSetModule(ctx *context.Context, x csrf.CSRF) {
 		parser, err := template.New(module).Parse(setting.Tmpl)
 		if err != nil {
 			log.Warn("UserSetModule parse %s error", module, err)
+			ctx.Flash.Warning(fmt.Sprintf("Render %s error: %v", module, err))
 			continue
 		}
 		buffer := bytes.Buffer{}
 		err = parser.Execute(&buffer, s)
 		if err != nil {
 			log.Warn("UserSetModule execute %s error", module, err)
+			ctx.Flash.Warning(fmt.Sprintf("Render %s error: %v", module, err))
 			continue
 		}
 		modules = append(modules, template.HTML(buffer.String()))
@@ -195,9 +209,9 @@ func ModuleSettingCommit(ctx *context.Context) {
 	form := ctx.Req.Form.Encode()
 	module := ctx.Params(":module")
 	log.Info("ModuleSettingCommit", form)
-	ok := module_service.GlobalSetingCommit(module, form)
+	ok, err := module_service.GlobalSetingCommit(module, form)
 	if !ok {
-		ctx.Flash.Error("Setting error")
+		ctx.Flash.Error(fmt.Sprintf("Setting error: %s", err))
 	} else {
 		ctx.Flash.Success("Setting succeed")
 	}
@@ -209,9 +223,9 @@ func UserModuleSettingCommit(ctx *context.Context) {
 	form := ctx.Req.Form.Encode()
 	module := ctx.Params(":module")
 	log.Info("UserModuleSettingCommit %d", ctx.User.ID, form)
-	ok := module_service.UserSettingCommit(ctx.User.ID, module, form)
+	ok, err := module_service.UserSettingCommit(ctx.User.ID, module, form)
 	if !ok {
-		ctx.Flash.Error("User setting error")
+		ctx.Flash.Error(fmt.Sprintf("User setting error: %s", err))
 	} else {
 		ctx.Flash.Success("User setting succeed")
 	}
@@ -244,9 +258,9 @@ func ModuleRedirect(ctx *context.Context) {
 	url := ctx.Req.URL.Path
 	url = strings.TrimPrefix(url, "/module/redirect")
 	log.Info("Module redirect", url)
-	contentType, payload, ok := module_service.UrlRedirectRequest(form, body, url, method)
+	contentType, payload, ok, msg := module_service.UrlRedirectRequest(form, body, url, method)
 	if !ok {
-		log.Info("%s for %s Not Found", url, method)
+		log.Info("%s for %s error: msg", url, method, msg)
 		ctx.NotFound("", nil)
 		return
 	}

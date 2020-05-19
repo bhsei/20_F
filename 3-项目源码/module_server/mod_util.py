@@ -29,27 +29,29 @@ def check_module(root_path):
             global_path.is_file() and
             user_path.is_file() and
             entry.is_file()):
-        return False, ""
+        return False, "invalid file structure"
     try:
         conf = json.loads(conf_path.read_text())
     except json.JSONDecodeError:
-        return False, ""
+        return False, "failed to parse config.json"
     if not check_module_config(conf):
-        return False, ""
+        return False, "lack essential setting items in config.json"
     return True, conf["name"]
 
 
 def extract_module_zip(module, target_dir):
     ok, name = check_module(Path(module))
     if not ok:
-        return False, ""
+        return False, name
     target = target_dir.joinpath(name)
+    if target.exists():
+        return False, "found the same module"
     try:
         target.mkdir(parents=True, exist_ok=False)
         module.extractall(str(target))
-    except Exception:
+    except Exception as e:
         shutil.rmtree(target)
-        return False, ""
+        return False, "failed to create module directory: {}".format(e)
     return True, name
 
 

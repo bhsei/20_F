@@ -8,6 +8,7 @@ import db_proxy
 import sys
 import json
 import importlib
+import shutil
 from typing import List, Union, Tuple, Dict
 
 class ModuleManage(object):
@@ -77,8 +78,11 @@ class ModuleManage(object):
             us = conf["userSetting"]
 
             proxy = db_proxy.DBProxy(name, us, self._db)
-            pkg = importlib.import_module(name + ".entry")
-            obj = pkg.load_module(proxy, conf)
+            try:
+                pkg = importlib.import_module(name + ".entry")
+                obj = pkg.load_module(proxy, conf)
+            except Exception as e:
+                raise ValueError("{}: execute error: {}".format(name, e))
 
             self._mlist[name] = {
                     "global_tmpl": global_tmpl,
@@ -92,23 +96,20 @@ class ModuleManage(object):
             print("load {}".format(name))
             return urls
 
-
-        def load(name):
-            try:
-                load_module(name)
-            except RuntimeError:
-                pass
-
         self._check = global_setting_check
         self._load = load_module
         init_database()
-        list(map(load, modules))
+        list(map(load_module, modules))
 
     def load_module(self, data: bytes) -> Union[List['RedirectUrl'], type(None)]:
         ok, name = mod_util.extract_module(data, self._root_path)
         if not ok:
-            return None
-        return self._load(name)
+            raise ValueError(name)
+        try:
+            self._load(name)
+        except ValueError as e:
+            shutil.rmtree(self._root_path.joinpath(name))
+            raise e
 
     def global_tmpls(self) -> Tuple[List[str], Dict[str, str]]:
         modules = list(self._mlist.keys())
@@ -131,41 +132,33 @@ class ModuleManage(object):
         tmpls = map(lambda k: (k, self._mlist[k]["user_tmpl"], get_setting(k)), valid)
         return list(tmpls)
 
-    def add_global_setting(self, module: str, settings: Dict[str, str]) -> bool:
+    def add_global_setting(self, module: str, settings: Dict[str, str]):
         if module not in self._mlist:
-            print("module {} not in module list".format(module))
-            return False
+            raise ValueError("module {} not in module list".format(module))
         gs = self._mlist[module]["config"]["globalSetting"]
         obj = self._mlist[module]["object"]
         f = {}
         for g in gs:
             if g not in settings:
-                print("setting {} is not valid".format(g))
-                return False
+                raise ValueError("{} not in global settings".format(g))
             f[g] = settings[g]
         if not obj.global_setting_check(f):
-            print("setting check error")
-            return False
+            raise ValueError("failed to check global settings")
         self._mlist[module]["status"] = self.NORMAL
         list(map(lambda key: self._config.set(module, key, f[key]), f.keys()))
-        return True
 
-    def add_user_setting(self, module: str, user_id: int, settings: Dict[str, str]) -> bool:
+    def add_user_setting(self, module: str, user_id: int, settings: Dict[str, str]):
         if module not in self._mlist:
-            print("module {} not in module list".format(module))
-            return False
+            raise ValueError("module {} not in module list".format(module))
         us = self._mlist[module]["config"]["userSetting"]
         obj = self._mlist[module]["object"]
         f = {}
         for u in us:
             if u not in settings:
-                print("{} not in setting".format(u))
-                return False
+                raise ValueError("{} not in user settings".format(u))
             f[u] = settings[u]
         if not obj.user_setting_check(user_id, f):
-            print("setting check error")
-            return False
-        return True
+            raise ValueError("failed to check user settings")
 
     def send(self, title, content, url, users):
         for user in users:
