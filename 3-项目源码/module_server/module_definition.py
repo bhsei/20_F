@@ -23,7 +23,7 @@ class RedirectUrl(object):
 """
 class ModuleAbstract(ABC):
 
-    def __init__(self, db_proxy, config, setting: SettingType = None):
+    def __init__(self, db_proxy, config):
         """
         db_proxy: 数据库代理对象，有如下方法:
             load(user_id: int) -> Dict[str, str] 返回当前模块的个人设置，若没有则为None
@@ -32,7 +32,6 @@ class ModuleAbstract(ABC):
         """
         self.db_proxy = db_proxy
         self.config = config
-        self.global_setting = setting
 
     @abstractmethod
     def send(self, title: str, content: str, url: str, uer_id: int) -> int:

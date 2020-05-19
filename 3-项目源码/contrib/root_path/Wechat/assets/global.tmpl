@@ -1,0 +1,24 @@
+<h4 class="ui top attached header">
+        {{.ModuleName}}
+</h4>
+<div class="ui attached segment">
+        <form class="ui form" action="{{.ModuleSubUrl}}/{{.ModuleName}}/global_setting" method="post">
+                {{.CsrfTokenHtml}}
+                <div class="required field">
+                        <label for="app_id">AppId</label>
+                        <input id="app_id" name="app_id" value='{{index .ModuleSetting "app_id"}}' data-name='{{index .ModuleSetting "app_id"}}' autofocus required>
+                </div>
+                <div class="required field">
+                        <label for="app_secret">AppSecret</label>
+                        <input id="app_secret" name="app_secret" value='{{index .ModuleSetting "app_secret"}}' data-name='{{index .ModuleSetting "app_secret"}}' autofocus required>
+                </div>
+                <div class="required field">
+                        <label for="token">Token</label>
+                        <input id="token" name="token" value='{{index .ModuleSetting "token"}}' data-name='{{index .ModuleSetting "token"}}' autofocus required>
+                </div>
+                <div class="field">
+                        <button class="ui green button">Update Setting</button>
+                </div>
+        </form>
+</div>
+
