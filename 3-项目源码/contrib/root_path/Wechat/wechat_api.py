@@ -4,11 +4,11 @@ import time
 
 class WechatAPI(object):
 
-    cached_access_token: str = ""
-    expire_time: float = 0
+    cached_access_token = ""
+    expire_time = 0
 
-    app_id: str = ""
-    app_secret: str = ""
+    app_id = ""
+    app_secret = ""
 
     def __init__(self, app_id, app_secret):
         self.app_id = app_id

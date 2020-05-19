@@ -28,8 +28,8 @@ def get_setting_tmpls(tmpls):
 
 class NotifyService(service_pb2_grpc.NotifyServiceServicer):
 
-    _module_manager: "ModuleManage" = None
-    _redirect_manager: "ModuleRedirect" = None
+    _module_manager = None
+    _redirect_manager = None
 
     def __init__(self, module_manager: "ModuleManage", redirect_manager: "ModuleRedirect"):
         self._module_manager = module_manager

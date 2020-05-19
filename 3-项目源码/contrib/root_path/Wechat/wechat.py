@@ -8,7 +8,7 @@ import urllib.parse
 
 class Wechat(ModuleAbstract):
 
-    _API: "WechatAPI" = None
+    _API = None
     _qr_expire = 60
 
     def __init__(self, db_proxy, config):
