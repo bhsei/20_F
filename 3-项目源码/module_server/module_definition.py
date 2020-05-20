@@ -34,15 +34,18 @@ class ModuleAbstract(ABC):
         self.config = config
 
     @abstractmethod
-    def send(self, title: str, content: str, url: str, uer_id: int) -> int:
+    def send(self, title: str, content: str, url: str, user_id: int) -> int:
+        print("{}: send to {}".format(self.config["name"], user_id))
         return 0
 
     def get_redirect_urls(self) -> List['RedirectUrl']:
         return []
 
     def global_setting_check(self, setting: Dict[str, str]) -> bool:
+        print("{}: global settings {}".format(self.config["name"], setting))
         self.global_setting = setting
         return True
 
     def user_setting_check(self, user_id: int, setting: Dict[str, str]) -> bool:
+        print("{}: user settings {} {}".format(self.config["name"], user_id, setting))
         return self.db_proxy.store(user_id, setting)
