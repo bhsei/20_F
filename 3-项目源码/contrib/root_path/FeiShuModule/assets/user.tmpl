@@ -1,0 +1,16 @@
+<h4 class="ui top attached header">
+        {{.ModuleName}}
+</h4>
+<div class="ui attached segment">
+        <form class="ui form" action="{{.ModuleSubUrl}}/{{.ModuleName}}/user_setting" method="post">
+                {{.CsrfTokenHtml}}
+                <div class="required field">
+                        <label for="bot_url">飞书通知机器人WebHook地址 <a href="https://getfeishu.cn/hc/zh-cn/articles/360024984973-%E5%9C%A8%E7%BE%A4%E8%81%8A%E4%B8%AD%E4%BD%BF%E7%94%A8%E6%9C%BA%E5%99%A8%E4%BA%BA" target="_blank">❔</a></label>
+                        <input id="bot_url" name="bot_url" value='{{index .ModuleSetting "bot_url"}}' data-name='{{index .ModuleSetting "bot_url"}}' autofocus required>
+                </div>
+                <div class="field">
+                        <button class="ui green button">Update Setting</button>
+                </div>
+        </form>
+</div>
+

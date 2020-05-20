@@ -3,6 +3,19 @@ from typing import Tuple
 import io
 import json
 import pathlib
+import shutil
+
+def is_str_list(data):
+    return bool(data) and all(isinstance(item, str) for item in data)
+
+
+def check_module_config(config):
+    return ("name" in config and
+            config["name"] and
+            "globalSetting" in config and
+            is_str_list(config["globalSetting"]) and
+            "userSetting" in config and
+            is_str_list(config["userSetting"]))
 
 
 def check_module(root_path):
@@ -16,29 +29,29 @@ def check_module(root_path):
             global_path.is_file() and
             user_path.is_file() and
             entry.is_file()):
-        return False, ""
+        return False, "invalid file structure"
     try:
         conf = json.loads(conf_path.read_text())
     except json.JSONDecodeError:
-        return False, ""
-    if not ("name" in conf and
-            "globalSetting" in conf and
-            "userSetting" in conf):
-        return False, ""
+        return False, "failed to parse config.json"
+    if not check_module_config(conf):
+        return False, "lack essential setting items in config.json"
     return True, conf["name"]
 
 
 def extract_module_zip(module, target_dir):
     ok, name = check_module(Path(module))
     if not ok:
-        return False, ""
+        return False, name
     target = target_dir.joinpath(name)
+    if target.exists():
+        return False, "found the same module"
     try:
         target.mkdir(parents=True, exist_ok=False)
         module.extractall(str(target))
-    except Exception:
-        # TODO: remove target directory
-        return False, ""
+    except Exception as e:
+        shutil.rmtree(target)
+        return False, "failed to create module directory: {}".format(e)
     return True, name
 
 

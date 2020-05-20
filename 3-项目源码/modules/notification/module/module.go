@@ -18,6 +18,9 @@ type (
 		issueID              int64
 		commentID            int64
 		notificationAuthorID int64
+		title                string
+		content              string
+		url                  string
 	}
 )
 
@@ -40,9 +43,9 @@ func (ns *notificationService) Run() {
 }
 
 // TODO: generate URL for message
-func doSend(issue *models.Issue, user *models.User) {
-	msg := fmt.Sprintf("issue: %d, author: %s", issue.ID, user.Name)
-	module.SendMessage("Issue", msg, "", []int64{user.ID})
+func doSend(issue *models.Issue, user *models.User, userID int64, title string, content string, url string) {
+	msg_title := fmt.Sprintf("%s issue#%d author %s: %s", issue.Repo.FullName(), issue.Index, user.Name, title)
+	module.SendMessage(msg_title, content, url, []int64{userID})
 }
 
 func sendNotification(opts issueNotificationOpts) error {
@@ -50,19 +53,42 @@ func sendNotification(opts issueNotificationOpts) error {
 	if err != nil {
 		return err
 	}
+	if err = issue.LoadRepo(); err != nil {
+		return err
+	}
+	if err = issue.LoadPoster(); err != nil {
+		return err
+	}
+	if err = issue.LoadPullRequest(); err != nil {
+		return err
+	}
+	unfiltered := make([]int64, 1, 64)
+	unfiltered[0] = issue.PosterID
+	ids, err := models.GetAssigneeIDsByIssue(issue.ID)
+	if err != nil {
+		return err
+	}
+	unfiltered = append(unfiltered, ids...)
+	ids, err = models.GetParticipantsIDsByIssueID(issue.ID)
+	if err != nil {
+		return err
+	}
+	unfiltered = append(unfiltered, ids...)
+	ids, err = models.GetIssueWatchersIDs(issue.ID, true)
+	if err != nil {
+		return err
+	}
+	unfiltered = append(unfiltered, ids...)
+	ids, err = models.GetRepoWatchersIDs(issue.RepoID)
+	if err != nil {
+		return err
+	}
+	unfiltered = append(unfiltered, ids...)
 	user, err := models.GetUserByID(opts.notificationAuthorID)
 	if err != nil {
 		return err
 	}
-	issueWatches, err := models.GetIssueWatchers(opts.issueID)
-	if err != nil {
-		return err
-	}
-	watches, err := models.GetWatchers(issue.RepoID)
-	if err != nil {
-		return err
-	}
-	alreadyNotified := make(map[int64]struct{}, len(issueWatches)+len(watches))
+	alreadyNotified := make(map[int64]struct{}, len(unfiltered))
 	notifyUser := func(userID int64) error {
 		if userID == opts.notificationAuthorID {
 			return nil
@@ -71,30 +97,11 @@ func sendNotification(opts issueNotificationOpts) error {
 			return nil
 		}
 		alreadyNotified[userID] = struct{}{}
-		doSend(issue, user)
+		doSend(issue, user, userID, opts.title, opts.content, opts.url)
 		return nil
 	}
-	for _, issueWatch := range issueWatches {
-		if !issueWatch.IsWatching {
-			alreadyNotified[issueWatch.UserID] = struct{}{}
-			continue
-		}
-		if err := notifyUser(issueWatch.UserID); err != nil {
-			return err
-		}
-	}
-	if err = issue.LoadRepo(); err != nil {
-		return err
-	}
-	for _, watch := range watches {
-		issue.Repo.Units = nil
-		if issue.IsPull && !issue.Repo.CheckUnitUser(watch.UserID, false, models.UnitTypePullRequests) {
-			continue
-		}
-		if !issue.IsPull && !issue.Repo.CheckUnitUser(watch.UserID, false, models.UnitTypeIssues) {
-			continue
-		}
-		if err := notifyUser(watch.UserID); err != nil {
+	for _, id := range unfiltered {
+		if err := notifyUser(id); err != nil {
 			return err
 		}
 	}
@@ -109,7 +116,10 @@ func (ns *notificationService) NotifyCreateIssueComment(doer *models.User, repo 
 	}
 	if comment != nil {
 		opts.commentID = comment.ID
+		opts.content = comment.Content
+		opts.url = comment.HTMLURL()
 	}
+	opts.title = "create new comment"
 	ns.issueQueue <- opts
 }
 
@@ -117,6 +127,9 @@ func (ns *notificationService) NotifyNewIssue(issue *models.Issue) {
 	ns.issueQueue <- issueNotificationOpts{
 		issueID:              issue.ID,
 		notificationAuthorID: issue.Poster.ID,
+		title:                "create new issue",
+		content:              issue.Title,
+		url:                  issue.HTMLURL(),
 	}
 }
 
@@ -124,6 +137,8 @@ func (ns *notificationService) NotifyIssueChangeStatus(doer *models.User, issue 
 	ns.issueQueue <- issueNotificationOpts{
 		issueID:              issue.ID,
 		notificationAuthorID: issue.Poster.ID,
+		title:                "issue status changed",
+		url:                  issue.HTMLURL(),
 	}
 }
 
@@ -131,6 +146,8 @@ func (ns *notificationService) NotifyNewPullRequest(pr *models.PullRequest) {
 	ns.issueQueue <- issueNotificationOpts{
 		issueID:              pr.Issue.ID,
 		notificationAuthorID: pr.Issue.PosterID,
+		title:                "new pull request",
+		url:                  pr.Issue.HTMLURL(),
 	}
 }
 
@@ -141,7 +158,10 @@ func (ns *notificationService) NotifyPullRequestReview(pr *models.PullRequest, r
 	}
 	if comment != nil {
 		opts.commentID = comment.ID
+		opts.content = comment.Content
+		opts.url = comment.HTMLURL()
 	}
+	opts.title = "new pull request review"
 	ns.issueQueue <- opts
 }
 
@@ -149,6 +169,8 @@ func (ns *notificationService) NotifyIssueChangeAssignee(doer *models.User, issu
 	ns.issueQueue <- issueNotificationOpts{
 		issueID:              issue.ID,
 		notificationAuthorID: doer.ID,
+		title:                "assignee changed",
+		url:                  issue.HTMLURL(),
 	}
 }
 
@@ -156,5 +178,7 @@ func (ns *notificationService) NotifyMergePullRequest(pr *models.PullRequest, do
 	ns.issueQueue <- issueNotificationOpts{
 		issueID:              pr.Issue.ID,
 		notificationAuthorID: doer.ID,
+		title:                "pull request merged",
+		url:                  pr.Issue.HTMLURL(),
 	}
 }

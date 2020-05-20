@@ -1,16 +1,12 @@
 package module
 
 import (
+	"code.gitea.io/gitea/modules/log"
 	"fmt"
 	"sync"
 )
 
 type ReqType int
-
-type UrlSpec struct {
-	id      int64
-	request ReqType
-}
 
 const (
 	POST ReqType = iota + 1
@@ -22,27 +18,23 @@ var (
 )
 
 func UrlRegister(id int64, url string, request_type ReqType) error {
-	_, loaded := redirectMap.LoadOrStore(url, &UrlSpec{
-		id:      id,
-		request: request_type,
-	})
+	key := fmt.Sprintf("%d%s", request_type, url)
+	_, loaded := redirectMap.LoadOrStore(key, id)
+	log.Info("register url: %s with type %d", url, request_type)
 	if loaded {
-		return fmt.Errorf("%s has been registered with id %d", url, id)
+		return fmt.Errorf("%s has been registered with type %d", url, id)
 	}
 	return nil
 }
 
-func UrlRedirectRequest(form map[string]string, data []byte, url_pattern string, request ReqType) (
-	content_type string, payload []byte, redirected bool) {
-	spec_data, redirected := redirectMap.Load(url_pattern)
+func UrlRedirectRequest(form map[string]string, data []byte, url string, request ReqType) (
+	content_type string, payload []byte, redirected bool, msg string) {
+	key := fmt.Sprintf("%d%s", request, url)
+	spec_data, redirected := redirectMap.Load(key)
 	if !redirected {
-		return
+		return "", []byte{}, false, fmt.Sprintf("%s not found", key)
 	}
-	spec, _ := spec_data.(UrlSpec)
-	if spec.request != request {
-		redirected = false
-		return
-	}
-	content_type, payload, redirected = Redirect(form, data, spec.id)
+	id, _ := spec_data.(int64)
+	content_type, payload, redirected, msg = Redirect(form, data, id)
 	return
 }
