@@ -42,9 +42,12 @@ func (ns *notificationService) Run() {
 	}
 }
 
-// TODO: generate URL for message
 func doSend(issue *models.Issue, user *models.User, userID int64, title string, content string, url string) {
-	msg_title := fmt.Sprintf("%s issue#%d author %s: %s", issue.Repo.FullName(), issue.Index, user.Name, title)
+	target := "issue"
+	if issue.IsPull {
+		target = "pull request"
+	}
+	msg_title := fmt.Sprintf("%s %s#%d author %s: %s", issue.Repo.FullName(), target, issue.Index, user.Name, title)
 	module.SendMessage(msg_title, content, url, []int64{userID})
 }
 
