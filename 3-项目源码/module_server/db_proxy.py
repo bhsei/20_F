@@ -15,8 +15,8 @@ class DBProxy(object):
         self.db = db
         self.db.db_add_setting(self.plist)
 
-    def _load_by_id(self, uid: int) -> Dict[str, str]:
-        settings = self.db.db_query(uid)
+    def _load_by_id(self, uid: int, timestamp: int) -> Dict[str, str]:
+        settings = self.db.db_query(uid, timestamp, self.plist)
         if settings is None:
             return None
         result = {}
@@ -35,14 +35,14 @@ class DBProxy(object):
             target[self.prefix + key] = cols[key]
         return self.db.db_query_setting(target)
 
-    def load(self, key: Union[Dict[str, str], int]) -> Union[Dict[str, str], List[int]]:
+    def load(self, key: Union[Dict[str, str], int], timestamp = None) -> Union[Dict[str, str], List[int]]:
         if type(key) == dict:
             return self._load_by_dict(key)
         if type(key) == int:
-            return self._load_by_id(key)
+            return self._load_by_id(key, timestamp)
         return None
 
-    def store(self, uid: int, data: Dict[str, str]) -> bool:
+    def store(self, uid: int, data: Dict[str, str], timestamp: int) -> bool:
         f = {}
         for i in range(len(self.setting_list)):
             item = self.setting_list[i]
@@ -51,6 +51,6 @@ class DBProxy(object):
                 print("store not in {} {}".format(item, data))
                 return False
             f[pitem] = data[item]
-        if self.db.db_insert_or_update(uid, f) != 1:
+        if self.db.db_insert_or_update(uid, f, timestamp) != 1:
             return False
         return True

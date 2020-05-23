@@ -122,12 +122,12 @@ class ModuleManage(object):
 
         return list(map(lambda k: (k, self._mlist[k]["global_tmpl"], get_setting(k)), modules))
 
-    def user_tmpls(self, uid: int) -> List[Tuple[str, str]]:
+    def user_tmpls(self, uid: int, timestamp: int) -> List[Tuple[str, str]]:
         valid = filter(lambda k: self._mlist[k]["status"] == self.NORMAL, self._mlist.keys())
         valid = list(valid)
         def get_setting(module):
             proxy = self._mlist[module]["db_proxy"]
-            data = proxy.load(uid)
+            data = proxy.load(uid, timestamp)
             return {} if data is None else data
         tmpls = map(lambda k: (k, self._mlist[k]["user_tmpl"], get_setting(k)), valid)
         return list(tmpls)
@@ -147,7 +147,7 @@ class ModuleManage(object):
         self._mlist[module]["status"] = self.NORMAL
         list(map(lambda key: self._config.set(module, key, f[key]), f.keys()))
 
-    def add_user_setting(self, module: str, user_id: int, settings: Dict[str, str]):
+    def add_user_setting(self, module: str, user_id: int, settings: Dict[str, str], timestamp: int):
         if module not in self._mlist:
             raise ValueError("module {} not in module list".format(module))
         us = self._mlist[module]["config"]["userSetting"]
@@ -157,8 +157,11 @@ class ModuleManage(object):
             if u not in settings:
                 raise ValueError("{} not in user settings".format(u))
             f[u] = settings[u]
-        if not obj.user_setting_check(user_id, f):
+        if not obj.user_setting_check(user_id, timestamp, f):
             raise ValueError("failed to check user settings")
+
+    def del_user(self, user_id: int, timestamp: int):
+        self._db.db_del_user(user_id, timestamp)
 
     def send(self, title, content, url, users):
         for user in users:

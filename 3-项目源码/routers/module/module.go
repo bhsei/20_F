@@ -154,7 +154,7 @@ func SetModules(ctx *context.Context, x csrf.CSRF) {
 }
 
 func UserSetModule(ctx *context.Context, x csrf.CSRF) {
-	settings, ok, err := module_service.UserSettings(ctx.User.ID)
+	settings, ok, err := module_service.UserSettings(ctx.User.ID, ctx.User.CreatedUnix.AsTime().Unix())
 	ctx.Data["Title"] = ctx.Tr("settings")
 	ctx.Data["PageIsSettingsModules"] = true
 
@@ -223,7 +223,8 @@ func UserModuleSettingCommit(ctx *context.Context) {
 	form := ctx.Req.Form.Encode()
 	module := ctx.Params(":module")
 	log.Info("UserModuleSettingCommit %d", ctx.User.ID, form)
-	ok, err := module_service.UserSettingCommit(ctx.User.ID, module, form)
+	timestamp := ctx.User.CreatedUnix.AsTime().Unix()
+	ok, err := module_service.UserSettingCommit(ctx.User.ID, timestamp, module, form)
 	if !ok {
 		ctx.Flash.Error(fmt.Sprintf("User setting error: %s", err))
 	} else {
@@ -239,6 +240,7 @@ func ModuleRedirect(ctx *context.Context) {
 	if ctx.User != nil {
 		form["uid"] = com.ToStr(ctx.User.ID)
 		form["admin"] = com.ToStr(ctx.User.IsAdmin)
+		form["timestamp"] = com.ToStr(ctx.User.CreatedUnix.AsTime().Unix())
 	}
 	body, err := ctx.Req.Body().Bytes()
 	if err != nil {

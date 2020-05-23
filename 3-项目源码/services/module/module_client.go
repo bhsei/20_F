@@ -156,7 +156,7 @@ func GlobalSettings() (gs map[string]SettingPack, ok bool, msg string) {
 	return
 }
 
-func UserSettings(user_id int64) (us map[string]SettingPack, ok bool, msg string) {
+func UserSettings(user_id int64, timestamp int64) (us map[string]SettingPack, ok bool, msg string) {
 	us = map[string]SettingPack{}
 	conn, err := getConnect()
 	msg = "gRPC error"
@@ -170,7 +170,8 @@ func UserSettings(user_id int64) (us map[string]SettingPack, ok bool, msg string
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeOut)
 	defer cancel()
 	r, err := c.UserSettingRequest(ctx, &Req{
-		User: user_id,
+		User:      user_id,
+		Timestamp: timestamp,
 	})
 	if err != nil {
 		log.Error("gRPC UserSettings %v", err)
@@ -217,7 +218,7 @@ func GlobalSetingCommit(module string, form string) (bool, string) {
 	return true, ""
 }
 
-func UserSettingCommit(uid int64, module string, form string) (bool, string) {
+func UserSettingCommit(uid int64, timestamp int64, module string, form string) (bool, string) {
 	conn, err := getConnect()
 	if err != nil {
 		log.Error("gRPC UserSettingCommit %v", err)
@@ -228,11 +229,14 @@ func UserSettingCommit(uid int64, module string, form string) (bool, string) {
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeOut)
 	defer cancel()
 	r, err := c.UserSettingCommit(ctx, &UserSettingReq{
-		Req: &SettingReq{
+		Req: &Req{
+			User:      uid,
+			Timestamp: timestamp,
+		},
+		Settings: &SettingReq{
 			Module:     module,
 			EncodeForm: form,
 		},
-		User: uid,
 	})
 	if err != nil {
 		log.Error("gRPC UserSettingCommit %s %v", module, err)
@@ -273,6 +277,35 @@ func Redirect(form map[string]string, data []byte, id int64) (content_type strin
 	}
 	content_type = r.GetContentType()
 	load = r.GetData()
+	ok = true
+	return
+}
+
+func DelUser(uid int64, timestamp int64) (ok bool, msg string) {
+	conn, err := getConnect()
+	ok = false
+	msg = "gRPC error"
+	if err != nil {
+		log.Error("gRPC Redirect %v", err)
+		return
+	}
+	defer conn.Close()
+	c := NewNotifyServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultTimeOut)
+	defer cancel()
+	r, err := c.DelUser(ctx, &Req{
+		User:      uid,
+		Timestamp: timestamp,
+	})
+	if err != nil {
+		log.Error("gRPC DelUser %v", err)
+		return
+	}
+	if r.GetStatus() != Resp_SUCCESS {
+		msg = r.GetDetail()
+		log.Warn("gRPC DelUser %s", msg)
+		return
+	}
 	ok = true
 	return
 }

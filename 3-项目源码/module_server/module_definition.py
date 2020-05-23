@@ -44,5 +44,5 @@ class ModuleAbstract(ABC):
         self.global_setting = setting
         return True
 
-    def user_setting_check(self, user_id: int, setting: Dict[str, str]) -> bool:
-        return self.db_proxy.store(user_id, setting)
+    def user_setting_check(self, user_id: int, timestamp: int, setting: Dict[str, str]) -> bool:
+        return self.db_proxy.store(user_id, setting, timestamp)

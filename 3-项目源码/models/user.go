@@ -34,6 +34,7 @@ import (
 	api "code.gitea.io/gitea/modules/structs"
 	"code.gitea.io/gitea/modules/timeutil"
 	"code.gitea.io/gitea/modules/util"
+	"code.gitea.io/gitea/services/module"
 
 	"github.com/unknwon/com"
 	"golang.org/x/crypto/argon2"
@@ -1224,6 +1225,10 @@ func deleteUser(e *xorm.Session, u *User) error {
 		}
 	}
 
+	ok, msg := module.DelUser(u.ID, u.CreatedUnix.AsTime().Unix())
+	if !ok {
+		return fmt.Errorf("Failed to remove module setting: %s", msg)
+	}
 	return nil
 }
 

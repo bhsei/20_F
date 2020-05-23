@@ -64,7 +64,8 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
     def UserSettingRequest(self, request, context):
         print("UserSettingRequest called")
         user = request.user
-        return get_setting_tmpls(self._module_manager.user_tmpls(user))
+        timestamp = request.timestamp
+        return get_setting_tmpls(self._module_manager.user_tmpls(user, timestamp))
 
     def Redirect(self, request, context):
         print("Redirect called")
@@ -108,17 +109,27 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
 
     def UserSettingCommit(self, request, context):
         print("UserSettingCommit called")
-        module = request.req.module
-        encode_form = request.req.encode_form
-        uid = request.user
+        module = request.settings.module
+        encode_form = request.settings.encode_form
+        uid = request.req.user
+        timestamp = request.req.timestamp
         form = urllib.parse.parse_qs(encode_form, keep_blank_values = True)
         for key in form.keys():
             form[key] = form[key][0]
         err = ""
         status = service_pb2.Resp.SUCCESS
         try:
-            self._module_manager.add_user_setting(module, uid, form)
+            self._module_manager.add_user_setting(module, uid, form, timestamp)
         except ValueError as e:
             status = service_pb2.Resp.ERROR
             err = str(e)
         return service_pb2.Resp(status=status, detail = err)
+
+    def DelUser(self, request, context):
+        print("DelUser called")
+        user = request.user
+        timestamp = request.timestamp
+        self._module_manager.del_user(user, timestamp)
+        status = service_pb2.Resp.SUCCESS
+        return service_pb2.Resp(status = status)
+

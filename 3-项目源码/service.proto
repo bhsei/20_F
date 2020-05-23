@@ -13,6 +13,7 @@ message MsgControl {
 
 message Req {
     int64 user = 1;
+    int64 timestamp = 2;
 }
 
 message Resp {
@@ -53,8 +54,8 @@ message SettingReq {
 }
 
 message UserSettingReq {
-    SettingReq req = 1;
-    int64 user = 2;
+    Req req = 1;
+    SettingReq settings = 2;
 }
 
 message SettingResp {
@@ -88,4 +89,5 @@ service NotifyService {
     rpc GlobalSettingCommit(SettingReq) returns (Resp) {}
     rpc UserSettingCommit(UserSettingReq) returns (Resp) {}
     rpc Redirect(RedirectData) returns (RedirectResp) {}
+    rpc DelUser(Req) returns (Resp) {}
 }

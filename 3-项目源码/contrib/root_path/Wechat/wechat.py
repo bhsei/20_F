@@ -5,6 +5,7 @@ import xmltodict
 import io
 import hashlib
 import urllib.parse
+import time
 
 class Wechat(ModuleAbstract):
 
@@ -19,7 +20,8 @@ class Wechat(ModuleAbstract):
         payload = b""
         if self._API is None:
             return content_type, payload
-        url = self._API.get_qr_code(str(form["uid"]), self._qr_expire)
+        form = {"uid": form["uid"], "timestamp": form["timestamp"]}
+        url = self._API.get_qr_code(urllib.parse.urlencode(form), self._qr_expire)
         if url:
             data = qrcode.make(url)
             target = io.BytesIO()
@@ -49,19 +51,24 @@ class Wechat(ModuleAbstract):
         open_id = form["FromUserName"]
         ids = self.db_proxy.load({"open_id": open_id})
         for user in ids:
-            self.db_proxy.store(user, {"open_id": ""})
+            # set timestamp to current time
+            self.db_proxy.store(user, {"open_id": ""}, int(time.time()))
 
     def subscribe(self, form):
         open_id = form["FromUserName"]
-        uid = form["EventKey"][len("qrscene_"):]
-        uid = int(uid)
-        self.db_proxy.store(uid, {"open_id": open_id})
+        form = form["EventKey"][len("qrscene_"):]
+        form = urllib.parse.parse_qs(form)
+        uid = int(form["uid"][0])
+        timestamp = int(form["timestamp"][0])
+        self.db_proxy.store(uid, {"open_id": open_id}, timestamp)
 
     def scan(self, form):
         open_id = form["FromUserName"]
-        uid = form["EventKey"]
-        uid = int(uid)
-        self.db_proxy.store(uid, {"open_id": open_id})
+        data = form["EventKey"]
+        data = urllib.parse.parse_qs(data)
+        uid = int(data["uid"][0])
+        timestamp = int(data["timestamp"][0])
+        self.db_proxy.store(uid, {"open_id": open_id}, timestamp)
 
     def watch_event_post(self, form, data):
         try:

@@ -46,11 +46,11 @@ class FeiShuModule(ModuleAbstract):
     def global_setting_check(self, setting: Dict[str, str]) -> bool:
         return True
 
-    def user_setting_check(self, user_id: int, setting: Dict[str, str]) -> bool:
+    def user_setting_check(self, user_id: int, timestamp: int, setting: Dict[str, str]) -> bool:
         if not re.match(r"https://open\.feishu\.cn/open-apis/bot/hook/[0-9a-z]*?", setting.get('bot_url')):
             return False
 
-        super(FeiShuModule, self).user_setting_check(user_id, setting)
+        super(FeiShuModule, self).user_setting_check(user_id, timestamp, setting)
         return True
 
 
