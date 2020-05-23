@@ -137,18 +137,11 @@ class DBOperation:
         db = self.db_connection
         cursor = db.cursor()
 
-        exist_settings = []
-
         cursor.execute("SELECT * FROM USER")
-        for field in cursor.description:
-            exist_settings.append(field[0])
-
-        tmp = ""
-        for s in settings:
-            if s not in exist_settings:
-                tmp += "ADD " + s + " " + "VARCHAR(256),"
-
-        stmt = "ALTER TABLE USER " + tmp[:-1]
+        description = list(map(lambda k: k[0], cursor.description))
+        settings = filter(lambda k: k not in description, settings)
+        settings = map(lambda k: "ADD {} VARCHAR(256)".format(k), settings)
+        stmt = "ALTER TABLE USER {}".format(",".join(settings))
 
         try:
             cursor.execute(stmt)
@@ -175,17 +168,12 @@ class DBOperation:
         db = self.db_connection
         cursor = db.cursor()
 
-        exist_settings = []
-        if self.db_table_if_exist(cursor, "USER"):
-            cursor.execute("SELECT * FROM USER")
-            for field in cursor.description:
-                exist_settings.append(field[0])
+        cursor.execute("SELECT * FROM USER")
 
-        tmp = ""
-        for s in settings:
-            if s in exist_settings:
-                tmp += "DROP " + s + ","
-        stmt = "ALTER TABLE USER " + tmp[:-1]
+        description = list(map(lambda k: k[0], cursor.description))
+        settings = filter(lambda k: k in description, settings)
+        settings = map(lambda k: "DROP {}".format(k), settings)
+        stmt = "ALTER TABLE USER {}".format(",".join(settings))
 
         try:
             cursor.execute(stmt)
@@ -227,14 +215,16 @@ class DBOperation:
         if not self._user_exists(id, timestamp):
             return {}
 
-        exist_fields = []
         res = {}
         cursor.execute("SELECT * FROM USER WHERE ID = {}".format(id))
-        query_all = cursor.fetchall()
-        for field in cursor.description:
-            exist_fields.append(field[0])
+        query_result = cursor.fetchone()
+        description = list(map(lambda k: k[0], cursor.description))
 
-        for i in range(len(exist_fields)):
-            if exist_fields[i] in cols:
-                res[exist_fields[i]] = query_all[0][i]
+        for col in cols:
+            res[col] = ""
+
+        for i in range(len(description)):
+            if description[i] in cols:
+                res[description[i]] = query_result[i]
+
         return res
