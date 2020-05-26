@@ -1,5 +1,6 @@
 import pymysql
 import re
+import traceback
 
 
 class DBOperation:
@@ -8,7 +9,12 @@ class DBOperation:
     @date 5/8
     """
 
-    db_connection = None
+    _db_connection = None
+    _host = ""
+    _port = ""
+    _user = ""
+    _password = ""
+    _database = ""
 
     def db_init(self, host, port, user, password, database):
         """ Another Way of Initial
@@ -20,26 +26,43 @@ class DBOperation:
         :param database: choose
         :return:
         """
-        self.db_connection = pymysql.connect(
-            host=host,
-            port=port,
-            user=user,
-            password=password,
-            database=database,
-            charset='utf8mb4'
-        )
+        self._host = host
+        self._port = port
+        self._user = user
+        self._password = password
+        self._database = database
+        
+        self._connect()
 
-        db = self.db_connection
-
-        cursor = db.cursor()
+        cursor = self._db_connection.cursor()
         cursor.execute("CREATE TABLE IF NOT EXISTS USER("
                        "ID INT,"
                        "createTime BIGINT"
                        ")")
         cursor.close()
+
+    def _connect(self):
+        self._db_connection = pymysql.connect(
+                host = self._host,
+                port = self._port,
+                user = self._user,
+                password = self._password,
+                database = self._database,
+                charset = "utf8mb4"
+            )
+
+    def _get_connection(self):
+        if self._db_connection is None:
+            self._connect()
+        try:
+            self._db_connection.ping(reconnect = True)
+        except:
+            traceback.print_exc()
+            self._connect()
+        return self._db_connection
     
     def _del_user(self, ID):
-        db = self.db_connection
+        db = self._get_connection()
         cursor = db.cursor()
         try:
             cursor.execute("DELETE FROM USER WHERE ID=%s", ID)
@@ -47,16 +70,19 @@ class DBOperation:
         except pymysql.MySQLError as e:
             db.rollback()
             raise e
+        finally:
+            cursor.close()
         return 1
     
     def _get_user_timestamp(self, ID):
-        db = self.db_connection
+        db = self._get_connection()
         cursor = db.cursor()
 
         exist_records = []
 
         cursor.execute("SELECT ID, createTime FROM USER WHERE id=%s", ID)
         exist_records = cursor.fetchone()
+        cursor.close()
         
         if exist_records:
             return exist_records[1]
@@ -72,8 +98,6 @@ class DBOperation:
         return True
 
     def db_del_user(self, ID, timestamp):
-        if self.db_connection is None:
-            raise pymysql.MySQLError("mysql uninitialized")
         old_timestamp = self._get_user_timestamp(ID)
         if old_timestamp and old_timestamp <= timestamp:
             self._del_user(ID)
@@ -85,10 +109,7 @@ class DBOperation:
         :param dict: The key-value collection intends to insert into USER
         :return:
         """
-        if self.db_connection is None:
-            raise pymysql.MySQLError("mysql uninitialized")
-
-        db = self.db_connection
+        db = self._get_connection()
         cursor = db.cursor()
 
         if self._user_exists(ID, timestamp):
@@ -105,6 +126,8 @@ class DBOperation:
             except pymysql.MySQLError as e:
                 db.rollback()
                 raise e
+            finally:
+                cursor.close()
             return -1
 
         keys = settings.keys()
@@ -119,6 +142,8 @@ class DBOperation:
         except pymysql.MySQLError as e:
             db.rollback()
             raise e
+        finally:
+            cursor.close()
         return 1
 
     def db_add_setting(self, settings):
@@ -131,10 +156,7 @@ class DBOperation:
             -2 Checking Table USER Failed
             -3 SQL Statement Error or No these Fields
         """
-        if self.db_connection is None:
-            raise pymysql.MySQLError("mysql uninitialized")
-
-        db = self.db_connection
+        db = self._get_connection()
         cursor = db.cursor()
 
         cursor.execute("SELECT * FROM USER")
@@ -149,6 +171,8 @@ class DBOperation:
         except pymysql.MySQLError as e:
             db.rollback()
             raise e
+        finally:
+            cursor.close()
 
         return 1
 
@@ -162,10 +186,7 @@ class DBOperation:
             -2 Checking Table USER Failed
             -3 SQL Statement Error or No these Fields
         """
-        if self.db_connection is None:
-            raise pymysql.MySQLError("mysql uninitialized")
-
-        db = self.db_connection
+        db = self._get_connection()
         cursor = db.cursor()
 
         cursor.execute("SELECT * FROM USER")
@@ -181,19 +202,20 @@ class DBOperation:
         except pymysql.MySQLError as e:
             db.rollback()
             raise e
+        finally:
+            cursor.close()
 
         return 1
 
     def db_query_setting(self, cols):
-        if self.db_connection is None:
-            raise pymysql.Error("mysql uninitialized")
-        db = self.db_connection
+        db = self._get_connection()
         cursor = db.cursor()
 
         q = map(lambda k: "{} = '{}'".format(k, cols[k]), cols.keys())
         stmt = "SELECT ID FROM USER WHERE {}".format(" AND ".join(q))
         cursor.execute(stmt)
         query_all = cursor.fetchall()
+        cursor.close()
         return list(map(lambda q: q[0], query_all))
 
     def db_query(self, id, timestamp, cols):
@@ -206,10 +228,7 @@ class DBOperation:
             dict the query fieldName-fieldValue as key-value
 
         """
-        if self.db_connection is None:
-            raise pymysql.Error("mysql uninitialized")
-
-        db = self.db_connection
+        db = self._get_connection()
         cursor = db.cursor()
 
         if not self._user_exists(id, timestamp):
@@ -219,6 +238,7 @@ class DBOperation:
         cursor.execute("SELECT * FROM USER WHERE ID = {}".format(id))
         query_result = cursor.fetchone()
         description = list(map(lambda k: k[0], cursor.description))
+        cursor.close()
 
         for col in cols:
             res[col] = ""
