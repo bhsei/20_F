@@ -108,11 +108,13 @@ class ModuleManage(object):
         ok, name = mod_util.extract_module(data, self._root_path)
         if not ok:
             raise ValueError(name)
+        urls = None
         try:
-            self._load(name)
+            urls = self._load(name)
         except ValueError as e:
             shutil.rmtree(self._root_path.joinpath(name))
             raise e
+        return urls
 
     def global_tmpls(self) -> Tuple[List[str], Dict[str, str]]:
         modules = list(self._mlist.keys())

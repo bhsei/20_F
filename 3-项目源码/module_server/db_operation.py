@@ -231,8 +231,8 @@ class DBOperation:
         db = self._get_connection()
         cursor = db.cursor()
 
-        if not self._user_exists(id, timestamp):
-            return {}
+        # if not self._user_exists(id, timestamp):
+            # return {}
 
         res = {}
         cursor.execute("SELECT * FROM USER WHERE ID = {}".format(id))
