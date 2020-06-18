@@ -240,6 +240,9 @@ class DBOperation:
         description = list(map(lambda k: k[0], cursor.description))
         cursor.close()
 
+        if not query_result:
+            return {}
+
         for col in cols:
             res[col] = ""
 
