@@ -33,8 +33,11 @@ class ModuleManage(object):
         root_path.mkdir(parents = True, exist_ok = True)
         config_path = root_path.joinpath("config.ini")
         self._config = mod_config.Config(config_path)
-        modules = self._config.get("gitea", "enabled_module")
-        modules = modules.split(",")
+        modules = self._config.get("gitea", "enabled_module", "")
+        if modules:
+            modules = modules.split(",")
+        else:
+            modules = []
         sys.path.append(str(root_path))
 
         def global_setting_check(name):

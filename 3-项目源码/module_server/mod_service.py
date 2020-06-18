@@ -46,11 +46,12 @@ class NotifyService(service_pb2_grpc.NotifyServiceServicer):
         print("ModuleImport called")
         urls = None
         err = ""
+        ret = service_pb2.Resp.SUCCESS
         try:
             urls = self._module_manager.load_module(request.data)
         except ValueError as e:
             err = str(e)
-        ret = service_pb2.Resp.ERROR
+            ret = service_pb2.Resp.ERROR
         if urls is not None:
             urls = redirect_urls_transform(urls)
             ret = service_pb2.Resp.SUCCESS
